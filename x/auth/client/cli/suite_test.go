@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client/configinit"
+	"github.com/spf13/viper"
 	"io"
 	"strings"
 	"testing"
@@ -802,7 +804,7 @@ func (s *CLITestSuite) TestGetBroadcastCommandOfflineFlag() {
 func (s *CLITestSuite) TestGetBroadcastCommandWithoutOfflineFlag() {
 	txCfg := s.clientCtx.TxConfig
 	clientCtx := client.Context{}
-	clientCtx = clientCtx.WithTxConfig(txCfg)
+	clientCtx = clientCtx.WithTxConfig(txCfg).WithViper(viper.New())
 
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, client.ClientContextKey, &clientCtx)
@@ -825,6 +827,7 @@ func (s *CLITestSuite) TestGetBroadcastCommandWithoutOfflineFlag() {
 	defer txFile.Close()
 
 	cmd.SetArgs([]string{txFile.Name()})
+	s.Require().NoError(configinit.InitiateViper(clientCtx.Viper, cmd, "TESTD"))
 	err = cmd.ExecuteContext(ctx)
 	s.Require().Error(err)
 	s.Require().Contains(err.Error(), "connect: connection refused")

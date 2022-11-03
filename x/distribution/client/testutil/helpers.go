@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client/configinit"
+	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	distrcli "github.com/cosmos/cosmos-sdk/x/distribution/client/cli"
@@ -11,7 +13,7 @@ import (
 
 func MsgWithdrawDelegatorRewardExec(clientCtx client.Context, valAddr fmt.Stringer, extraArgs ...string) ([]byte, error) {
 	buf := new(bytes.Buffer)
-	clientCtx = clientCtx.WithOutput(buf)
+	clientCtx = clientCtx.WithOutput(buf).WithViper(viper.New())
 
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, client.ClientContextKey, &clientCtx)
@@ -24,6 +26,9 @@ func MsgWithdrawDelegatorRewardExec(clientCtx client.Context, valAddr fmt.String
 	cmd.SetOut(buf)
 	cmd.SetArgs(args)
 
+	if err := configinit.InitiateViper(clientCtx.Viper, cmd, "TESTD"); err != nil {
+		return nil, err
+	}
 	if err := cmd.ExecuteContext(ctx); err != nil {
 		return nil, err
 	}
