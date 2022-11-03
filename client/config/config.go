@@ -2,11 +2,30 @@ package config
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client/configinit"
+	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
-
-	"github.com/cosmos/cosmos-sdk/client"
 )
+
+const DefaultConfigTemplate = `# This is a TOML config file.
+# For more information, see https://github.com/toml-lang/toml
+
+###############################################################################
+###                           Client Configuration                            ###
+###############################################################################
+
+# The network chain ID
+chain-id = "{{ .ChainID }}"
+# The keyring's backend, where the keys are stored (os|file|kwallet|pass|test|memory)
+keyring-backend = "{{ .KeyringBackend }}"
+# CLI output format (text|json)
+output = "{{ .Output }}"
+# <host>:<port> to Tendermint RPC interface for this chain
+node = "{{ .Node }}"
+# Transaction broadcasting mode (sync|async)
+broadcast-mode = "{{ .BroadcastMode }}"
+`
 
 // Default constants
 const (
@@ -50,52 +69,36 @@ func (c *ClientConfig) SetBroadcastMode(broadcastMode string) {
 	c.BroadcastMode = broadcastMode
 }
 
-// ReadFromClientConfig reads values from client.toml file and updates them in client Context
-func ReadFromClientConfig(ctx client.Context) (client.Context, error) {
-	configPath := filepath.Join(ctx.HomeDir, "config")
+func GetClientConfig(v *viper.Viper) (ClientConfig, error) {
+	conf := new(ClientConfig)
+	if err := v.Unmarshal(conf); err != nil {
+		return ClientConfig{}, fmt.Errorf("couldn't get client config: %v", err)
+	}
+
+	return *conf, nil
+}
+
+func LoadClientConfigFile(v *viper.Viper, homeDir string) error {
+	configPath := filepath.Join(homeDir, "config") // TODO: Dep
 	configFilePath := filepath.Join(configPath, "client.toml")
-	conf := defaultClientConfig()
 
 	// if config.toml file does not exist we create it and write default ClientConfig values into it.
 	if _, err := os.Stat(configFilePath); os.IsNotExist(err) {
+		conf := defaultClientConfig()
 		if err := ensureConfigPath(configPath); err != nil {
-			return ctx, fmt.Errorf("couldn't make client config: %v", err)
+			return fmt.Errorf("couldn't make client config: %v", err)
 		}
 
-		if ctx.ChainID != "" {
-			conf.ChainID = ctx.ChainID // chain-id will be written to the client.toml while initiating the chain.
-		}
-
-		if err := writeConfigToFile(configFilePath, conf); err != nil {
-			return ctx, fmt.Errorf("could not write client config to the file: %v", err)
+		if err := configinit.WriteConfigToFile(configFilePath, DefaultConfigTemplate, conf); err != nil {
+			return fmt.Errorf("could not write client config to the file: %v", err)
 		}
 	}
 
-	conf, err := getClientConfig(configPath, ctx.Viper)
-	if err != nil {
-		return ctx, fmt.Errorf("couldn't get client config: %v", err)
-	}
-	// we need to update KeyringDir field on Client Context first cause it is used in NewKeyringFromBackend
-	ctx = ctx.WithOutputFormat(conf.Output).
-		WithChainID(conf.ChainID).
-		WithKeyringDir(ctx.HomeDir)
+	v.SetConfigFile(configFilePath)
+	return v.MergeInConfig()
+}
 
-	keyring, err := client.NewKeyringFromBackend(ctx, conf.KeyringBackend)
-	if err != nil {
-		return ctx, fmt.Errorf("couldn't get key ring: %v", err)
-	}
-
-	ctx = ctx.WithKeyring(keyring)
-
-	// https://github.com/cosmos/cosmos-sdk/issues/8986
-	client, err := client.NewClientFromNode(conf.Node)
-	if err != nil {
-		return ctx, fmt.Errorf("couldn't get client from nodeURI: %v", err)
-	}
-
-	ctx = ctx.WithNodeURI(conf.Node).
-		WithClient(client).
-		WithBroadcastMode(conf.BroadcastMode)
-
-	return ctx, nil
+// ensureConfigPath creates a directory configPath if it does not exist
+func ensureConfigPath(configPath string) error {
+	return os.MkdirAll(configPath, os.ModePerm)
 }

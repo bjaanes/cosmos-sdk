@@ -31,11 +31,13 @@ func Test_TestnetCmd(t *testing.T) {
 	err = genutiltest.ExecInitCmd(simapp.ModuleBasics, home, encodingConfig.Codec)
 	require.NoError(t, err)
 
-	serverCtx := server.NewContext(viper.New(), cfg, logger)
+	v := viper.New()
+	serverCtx := server.NewContext(v, cfg, logger)
 	clientCtx := client.Context{}.
 		WithCodec(encodingConfig.Codec).
 		WithHomeDir(home).
-		WithTxConfig(encodingConfig.TxConfig)
+		WithTxConfig(encodingConfig.TxConfig).
+		WithViper(v)
 
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, server.ServerContextKey, serverCtx)

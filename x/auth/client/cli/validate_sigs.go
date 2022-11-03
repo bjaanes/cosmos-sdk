@@ -37,7 +37,7 @@ transaction will be not be performed as that will require RPC communication with
 
 func makeValidateSignaturesCmd() func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		clientCtx, err := client.GetClientTxContext(cmd)
+		clientCtx, err := client.GetClientContextFromCmd(cmd)
 		if err != nil {
 			return err
 		}
@@ -131,7 +131,7 @@ func readTxAndInitContexts(clientCtx client.Context, cmd *cobra.Command, filenam
 		return clientCtx, tx.Factory{}, nil, err
 	}
 
-	txFactory := tx.NewFactoryCLI(clientCtx, cmd.Flags())
+	txFactory := tx.NewFactoryCLI(clientCtx)
 
 	return clientCtx, txFactory, stdTx, nil
 }

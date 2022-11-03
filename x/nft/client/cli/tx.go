@@ -40,9 +40,9 @@ func NewCmdSend() *cobra.Command {
 			$ %s tx %s send <class-id> <nft-id> <receiver> --from <sender> --chain-id <chain-id>`, version.AppName, nft.ModuleName),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
-				return err
+				return nil
 			}
 
 			msg := nft.MsgSend{
@@ -51,7 +51,7 @@ func NewCmdSend() *cobra.Command {
 				Sender:   clientCtx.GetFromAddress().String(),
 				Receiver: args[2],
 			}
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, &msg)
 		},
 	}
 

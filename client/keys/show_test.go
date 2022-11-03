@@ -3,6 +3,8 @@ package keys
 import (
 	"context"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client/configinit"
+	"github.com/spf13/viper"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -59,8 +61,10 @@ func Test_runShowCmd(t *testing.T) {
 
 	clientCtx := client.Context{}.
 		WithKeyringDir(kbHome).
-		WithCodec(cdc)
+		WithCodec(cdc).
+		WithViper(viper.New())
 	ctx := context.WithValue(context.Background(), client.ClientContextKey, &clientCtx)
+	require.NoError(t, configinit.InitiateViper(clientCtx.Viper, cmd, "TESTD"))
 
 	cmd.SetArgs([]string{"invalid"})
 	require.EqualError(t, cmd.ExecuteContext(ctx), "invalid is not a valid name or address: decoding bech32 failed: invalid bech32 string length 7")

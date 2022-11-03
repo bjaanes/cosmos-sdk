@@ -4,15 +4,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/distribution/types"
+	"github.com/spf13/cobra"
 )
 
 // Transaction flags for the x/distribution module
@@ -45,14 +43,13 @@ func NewTxCmd() *cobra.Command {
 	return distTxCmd
 }
 
-type newGenerateOrBroadcastFunc func(client.Context, *pflag.FlagSet, ...sdk.Msg) error
+type newGenerateOrBroadcastFunc func(client.Context, ...sdk.Msg) error
 
 func newSplitAndApply(
-	genOrBroadcastFn newGenerateOrBroadcastFunc, clientCtx client.Context,
-	fs *pflag.FlagSet, msgs []sdk.Msg, chunkSize int,
+	genOrBroadcastFn newGenerateOrBroadcastFunc, clientCtx client.Context, msgs []sdk.Msg, chunkSize int,
 ) error {
 	if chunkSize == 0 {
-		return genOrBroadcastFn(clientCtx, fs, msgs...)
+		return genOrBroadcastFn(clientCtx, msgs...)
 	}
 
 	// split messages into slices of length chunkSize
@@ -65,7 +62,7 @@ func newSplitAndApply(
 		}
 
 		msgChunk := msgs[i:sliceEnd]
-		if err := genOrBroadcastFn(clientCtx, fs, msgChunk...); err != nil {
+		if err := genOrBroadcastFn(clientCtx, msgChunk...); err != nil {
 			return err
 		}
 	}
@@ -93,7 +90,7 @@ $ %s tx distribution withdraw-rewards %s1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj 
 		),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
 				return err
 			}
@@ -109,7 +106,7 @@ $ %s tx distribution withdraw-rewards %s1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj 
 				msgs = append(msgs, types.NewMsgWithdrawValidatorCommission(valAddr))
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msgs...)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, msgs...)
 		},
 	}
 
@@ -136,7 +133,7 @@ $ %[1]s tx distribution withdraw-all-rewards --from mykey
 		),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
 				return err
 			}
@@ -169,7 +166,7 @@ $ %[1]s tx distribution withdraw-all-rewards --from mykey
 
 			chunkSize, _ := cmd.Flags().GetInt(FlagMaxMessagesPerTx)
 
-			return newSplitAndApply(tx.GenerateOrBroadcastTxCLI, clientCtx, cmd.Flags(), msgs, chunkSize)
+			return newSplitAndApply(tx.GenerateOrBroadcastTxCLI, clientCtx, msgs, chunkSize)
 		},
 	}
 
@@ -197,7 +194,7 @@ $ %s tx distribution set-withdraw-addr %s1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p
 		),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
 				return err
 			}
@@ -209,7 +206,7 @@ $ %s tx distribution set-withdraw-addr %s1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p
 
 			msg := types.NewMsgSetWithdrawAddress(delAddr, withdrawAddr)
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, msg)
 		},
 	}
 
@@ -234,7 +231,7 @@ $ %s tx distribution fund-community-pool 100uatom --from mykey
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
 				return err
 			}
@@ -246,7 +243,7 @@ $ %s tx distribution fund-community-pool 100uatom --from mykey
 
 			msg := types.NewMsgFundCommunityPool(amount, depositorAddr)
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, msg)
 		},
 	}
 

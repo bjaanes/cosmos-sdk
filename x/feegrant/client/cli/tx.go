@@ -63,8 +63,9 @@ Examples:
 		),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cmd.Flags().Set(flags.FlagFrom, args[0])
-			clientCtx, err := client.GetClientTxContext(cmd)
+			from := args[0]
+			_ = cmd.Flags().Set(flags.FlagFrom, from)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
 				return err
 			}
@@ -165,7 +166,7 @@ Examples:
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, msg)
 		},
 	}
 
@@ -194,8 +195,9 @@ Example:
 		),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cmd.Flags().Set(flags.FlagFrom, args[0])
-			clientCtx, err := client.GetClientTxContext(cmd)
+			from := args[0]
+			_ = cmd.Flags().Set(flags.FlagFrom, from)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
 				return err
 			}
@@ -207,7 +209,7 @@ Example:
 
 			msg := feegrant.NewMsgRevokeAllowance(clientCtx.GetFromAddress(), grantee)
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, &msg)
 		},
 	}
 

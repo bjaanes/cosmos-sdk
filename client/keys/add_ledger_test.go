@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/spf13/viper"
 	"io"
 	"testing"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/tendermint/tendermint/libs/cli"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/configinit"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	clienttestutil "github.com/cosmos/cosmos-sdk/client/testutil"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
@@ -45,7 +47,7 @@ func Test_runAddCmdLedgerWithCustomCoinType(t *testing.T) {
 	kbHome := t.TempDir()
 
 	cdc := clienttestutil.MakeTestCodec(t)
-	clientCtx := client.Context{}.WithKeyringDir(kbHome).WithCodec(cdc)
+	clientCtx := client.Context{}.WithKeyringDir(kbHome).WithCodec(cdc).WithViper(viper.New())
 	ctx := context.WithValue(context.Background(), client.ClientContextKey, &clientCtx)
 
 	cmd.SetArgs([]string{
@@ -61,6 +63,8 @@ func Test_runAddCmdLedgerWithCustomCoinType(t *testing.T) {
 
 	mockIn := testutil.ApplyMockIODiscardOutErr(cmd)
 	mockIn.Reset("test1234\ntest1234\n")
+
+	require.NoError(t, configinit.InitiateViper(clientCtx.Viper, cmd, "TESTD"))
 	require.NoError(t, cmd.ExecuteContext(ctx))
 
 	// Now check that it has been stored properly
@@ -98,7 +102,7 @@ func Test_runAddCmdLedger(t *testing.T) {
 	kbHome := t.TempDir()
 	cdc := clienttestutil.MakeTestCodec(t)
 
-	clientCtx := client.Context{}.WithKeyringDir(kbHome).WithCodec(cdc)
+	clientCtx := client.Context{}.WithKeyringDir(kbHome).WithCodec(cdc).WithViper(viper.New())
 	ctx := context.WithValue(context.Background(), client.ClientContextKey, &clientCtx)
 
 	cmd.SetArgs([]string{
@@ -111,6 +115,7 @@ func Test_runAddCmdLedger(t *testing.T) {
 	})
 	mockIn.Reset("test1234\ntest1234\n")
 
+	require.NoError(t, configinit.InitiateViper(clientCtx.Viper, cmd, "TESTD"))
 	require.NoError(t, cmd.ExecuteContext(ctx))
 
 	// Now check that it has been stored properly
@@ -177,12 +182,15 @@ func Test_runAddCmdLedgerDryRun(t *testing.T) {
 			clientCtx := client.Context{}.
 				WithKeyringDir(kbHome).
 				WithKeyring(kb).
-				WithCodec(cdc)
+				WithCodec(cdc).
+				WithViper(viper.New())
 			ctx := context.WithValue(context.Background(), client.ClientContextKey, &clientCtx)
 			b := bytes.NewBufferString("")
 			cmd.SetOut(b)
 
 			cmd.SetArgs(tt.args)
+
+			require.NoError(t, configinit.InitiateViper(clientCtx.Viper, cmd, "TESTD"))
 			require.NoError(t, cmd.ExecuteContext(ctx))
 
 			if tt.added {

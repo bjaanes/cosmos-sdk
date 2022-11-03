@@ -34,7 +34,7 @@ func NewMsgVerifyInvariantTxCmd() *cobra.Command {
 		Short: "Submit proof that an invariant broken to halt the chain",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
 				return err
 			}
@@ -50,7 +50,7 @@ func NewMsgVerifyInvariantTxCmd() *cobra.Command {
 
 			msg := types.NewMsgVerifyInvariant(senderAddr, moduleName, route)
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, msg)
 		},
 	}
 

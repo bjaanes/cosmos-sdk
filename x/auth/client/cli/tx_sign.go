@@ -67,11 +67,11 @@ account key. It implies --signature-only.
 
 func makeSignBatchCmd() func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		clientCtx, err := client.GetClientTxContext(cmd)
+		clientCtx, err := client.GetClientContextFromCmd(cmd)
 		if err != nil {
 			return err
 		}
-		txFactory := tx.NewFactoryCLI(clientCtx, cmd.Flags())
+		txFactory := tx.NewFactoryCLI(clientCtx)
 		txCfg := clientCtx.TxConfig
 		printSignatureOnly, _ := cmd.Flags().GetBool(flagSigOnly)
 

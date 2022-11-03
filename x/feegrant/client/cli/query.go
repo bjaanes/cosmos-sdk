@@ -47,7 +47,10 @@ $ %s query feegrant grant [granter] [grantee]
 `, version.AppName),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
+			if err != nil {
+				return err
+			}
 			queryClient := feegrant.NewQueryClient(clientCtx)
 
 			granterAddr, err := sdk.AccAddressFromBech32(args[0])
@@ -94,7 +97,10 @@ $ %s query feegrant grants-by-grantee [grantee]
 `, version.AppName),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
+			if err != nil {
+				return err
+			}
 			queryClient := feegrant.NewQueryClient(clientCtx)
 
 			granteeAddr, err := sdk.AccAddressFromBech32(args[0])
@@ -142,7 +148,10 @@ $ %s query feegrant grants-by-granter [granter]
 `, version.AppName),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
+			if err != nil {
+				return err
+			}
 			queryClient := feegrant.NewQueryClient(clientCtx)
 
 			granterAddr, err := sdk.AccAddressFromBech32(args[0])

@@ -3,6 +3,8 @@ package keys
 import (
 	"context"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client/configinit"
+	"github.com/spf13/viper"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -28,25 +30,9 @@ func cleanupKeys(t *testing.T, kb keyring.Keyring, keys ...string) func() {
 }
 
 func Test_runListCmd(t *testing.T) {
-	cmd := ListKeysCmd()
-	cmd.Flags().AddFlagSet(Commands("home").PersistentFlags())
 
 	kbHome1 := t.TempDir()
 	kbHome2 := t.TempDir()
-
-	mockIn := testutil.ApplyMockIODiscardOutErr(cmd)
-	cdc := clienttestutil.MakeTestCodec(t)
-	kb, err := keyring.New(sdk.KeyringServiceName(), keyring.BackendTest, kbHome2, mockIn, cdc)
-	require.NoError(t, err)
-
-	clientCtx := client.Context{}.WithKeyring(kb)
-	ctx := context.WithValue(context.Background(), client.ClientContextKey, &clientCtx)
-
-	path := "" // sdk.GetConfig().GetFullBIP44Path()
-	_, err = kb.NewAccount("something", testdata.TestMnemonic, "", path, hd.Secp256k1)
-	require.NoError(t, err)
-
-	t.Cleanup(cleanupKeys(t, kb, "something"))
 
 	testData := []struct {
 		name    string
@@ -59,11 +45,29 @@ func Test_runListCmd(t *testing.T) {
 	for _, tt := range testData {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			cmd := ListKeysCmd()
+			cmd.Flags().AddFlagSet(Commands("home").PersistentFlags())
+
+			mockIn := testutil.ApplyMockIODiscardOutErr(cmd)
+			cdc := clienttestutil.MakeTestCodec(t)
+			kb, err := keyring.New(sdk.KeyringServiceName(), keyring.BackendTest, kbHome2, mockIn, cdc)
+			require.NoError(t, err)
+
+			clientCtx := client.Context{}.WithKeyring(kb).WithViper(viper.New())
+			ctx := context.WithValue(context.Background(), client.ClientContextKey, &clientCtx)
+
+			path := "" // sdk.GetConfig().GetFullBIP44Path()
+			_, err = kb.NewAccount("something", testdata.TestMnemonic, "", path, hd.Secp256k1)
+			require.NoError(t, err)
+
+			t.Cleanup(cleanupKeys(t, kb, "something"))
+
 			cmd.SetArgs([]string{
 				fmt.Sprintf("--%s=%s", flags.FlagHome, tt.kbDir),
 				fmt.Sprintf("--%s=false", flagListNames),
 			})
 
+			require.NoError(t, configinit.InitiateViper(clientCtx.Viper, cmd, "TESTD"))
 			if err := cmd.ExecuteContext(ctx); (err != nil) != tt.wantErr {
 				t.Errorf("runListCmd() error = %v, wantErr %v", err, tt.wantErr)
 			}

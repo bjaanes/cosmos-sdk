@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/spf13/viper"
 	"io"
 	"strconv"
 	"strings"
@@ -198,7 +199,7 @@ func (s *CLITestSuite) TestTxCreateGroup() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -220,7 +221,7 @@ func (s *CLITestSuite) TestTxCreateGroup() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -243,7 +244,7 @@ func (s *CLITestSuite) TestTxCreateGroup() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -265,7 +266,7 @@ func (s *CLITestSuite) TestTxCreateGroup() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -325,7 +326,7 @@ func (s *CLITestSuite) TestTxUpdateGroupAdmin() {
 		c := newMockTendermintRPC(abci.ResponseQuery{
 			Value: bz,
 		})
-		return s.baseCtx.WithClient(c)
+		return s.baseCtx.WithClient(c).WithViper(viper.New())
 	}
 	clientCtx := ctxGen().WithOutput(&outBuf)
 	ctx := svrcmd.CreateExecuteContext(context.Background())
@@ -372,7 +373,7 @@ func (s *CLITestSuite) TestTxUpdateGroupAdmin() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -394,7 +395,7 @@ func (s *CLITestSuite) TestTxUpdateGroupAdmin() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -417,7 +418,7 @@ func (s *CLITestSuite) TestTxUpdateGroupAdmin() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -483,7 +484,7 @@ func (s *CLITestSuite) TestTxUpdateGroupMetadata() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -502,7 +503,7 @@ func (s *CLITestSuite) TestTxUpdateGroupMetadata() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -522,7 +523,7 @@ func (s *CLITestSuite) TestTxUpdateGroupMetadata() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -596,7 +597,7 @@ func (s *CLITestSuite) TestTxUpdateGroupMembers() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -615,7 +616,7 @@ func (s *CLITestSuite) TestTxUpdateGroupMembers() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -635,7 +636,7 @@ func (s *CLITestSuite) TestTxUpdateGroupMembers() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -654,7 +655,7 @@ func (s *CLITestSuite) TestTxUpdateGroupMembers() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -732,7 +733,7 @@ func (s *CLITestSuite) TestTxCreateGroupWithPolicy() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -757,7 +758,7 @@ func (s *CLITestSuite) TestTxCreateGroupWithPolicy() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -782,7 +783,7 @@ func (s *CLITestSuite) TestTxCreateGroupWithPolicy() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -808,7 +809,7 @@ func (s *CLITestSuite) TestTxCreateGroupWithPolicy() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -833,7 +834,7 @@ func (s *CLITestSuite) TestTxCreateGroupWithPolicy() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -894,9 +895,6 @@ func (s *CLITestSuite) TestTxCreateGroupPolicy() {
 	invalidNegativePercentageDecisionPolicyFile := testutil.WriteToNewTempFile(s.T(), `{"@type":"/cosmos.group.v1.PercentageDecisionPolicy", "percentage":"-0.5", "windows":{"voting_period":"1s"}}`)
 	invalidPercentageDecisionPolicyFile := testutil.WriteToNewTempFile(s.T(), `{"@type":"/cosmos.group.v1.PercentageDecisionPolicy", "percentage":"2", "windows":{"voting_period":"1s"}}`)
 
-	cmd := groupcli.MsgCreateGroupPolicyCmd()
-	cmd.SetOutput(io.Discard)
-
 	testCases := []struct {
 		name         string
 		ctxGen       func() client.Context
@@ -913,7 +911,7 @@ func (s *CLITestSuite) TestTxCreateGroupPolicy() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -936,7 +934,7 @@ func (s *CLITestSuite) TestTxCreateGroupPolicy() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -959,7 +957,7 @@ func (s *CLITestSuite) TestTxCreateGroupPolicy() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -983,7 +981,7 @@ func (s *CLITestSuite) TestTxCreateGroupPolicy() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1006,7 +1004,7 @@ func (s *CLITestSuite) TestTxCreateGroupPolicy() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1029,7 +1027,7 @@ func (s *CLITestSuite) TestTxCreateGroupPolicy() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1051,11 +1049,10 @@ func (s *CLITestSuite) TestTxCreateGroupPolicy() {
 		tc := tc
 
 		s.Run(tc.name, func() {
-			var outBuf bytes.Buffer
-
-			clientCtx := tc.ctxGen().WithOutput(&outBuf)
+			clientCtx := tc.ctxGen()
 			ctx := svrcmd.CreateExecuteContext(context.Background())
 
+			cmd := groupcli.MsgCreateGroupPolicyCmd()
 			cmd.SetContext(ctx)
 			cmd.SetArgs(tc.args)
 
@@ -1102,7 +1099,7 @@ func (s *CLITestSuite) TestTxUpdateGroupPolicyAdmin() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1121,7 +1118,7 @@ func (s *CLITestSuite) TestTxUpdateGroupPolicyAdmin() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1141,7 +1138,7 @@ func (s *CLITestSuite) TestTxUpdateGroupPolicyAdmin() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1160,7 +1157,7 @@ func (s *CLITestSuite) TestTxUpdateGroupPolicyAdmin() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1225,7 +1222,7 @@ func (s *CLITestSuite) TestTxUpdateGroupPolicyDecisionPolicy() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1244,7 +1241,7 @@ func (s *CLITestSuite) TestTxUpdateGroupPolicyDecisionPolicy() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1263,7 +1260,7 @@ func (s *CLITestSuite) TestTxUpdateGroupPolicyDecisionPolicy() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1283,7 +1280,7 @@ func (s *CLITestSuite) TestTxUpdateGroupPolicyDecisionPolicy() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1302,7 +1299,7 @@ func (s *CLITestSuite) TestTxUpdateGroupPolicyDecisionPolicy() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1321,7 +1318,7 @@ func (s *CLITestSuite) TestTxUpdateGroupPolicyDecisionPolicy() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1340,7 +1337,7 @@ func (s *CLITestSuite) TestTxUpdateGroupPolicyDecisionPolicy() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1399,7 +1396,7 @@ func (s *CLITestSuite) TestTxUpdateGroupPolicyMetadata() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1418,7 +1415,7 @@ func (s *CLITestSuite) TestTxUpdateGroupPolicyMetadata() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1438,7 +1435,7 @@ func (s *CLITestSuite) TestTxUpdateGroupPolicyMetadata() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1457,7 +1454,7 @@ func (s *CLITestSuite) TestTxUpdateGroupPolicyMetadata() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1476,7 +1473,7 @@ func (s *CLITestSuite) TestTxUpdateGroupPolicyMetadata() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1541,7 +1538,7 @@ func (s *CLITestSuite) TestTxSubmitProposal() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1558,7 +1555,7 @@ func (s *CLITestSuite) TestTxSubmitProposal() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1576,7 +1573,7 @@ func (s *CLITestSuite) TestTxSubmitProposal() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1594,7 +1591,7 @@ func (s *CLITestSuite) TestTxSubmitProposal() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1652,7 +1649,7 @@ func (s *CLITestSuite) TestTxVote() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1672,7 +1669,7 @@ func (s *CLITestSuite) TestTxVote() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1693,7 +1690,7 @@ func (s *CLITestSuite) TestTxVote() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1714,7 +1711,7 @@ func (s *CLITestSuite) TestTxVote() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1773,7 +1770,7 @@ func (s *CLITestSuite) TestTxWithdrawProposal() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{
@@ -1791,7 +1788,7 @@ func (s *CLITestSuite) TestTxWithdrawProposal() {
 				c := newMockTendermintRPC(abci.ResponseQuery{
 					Value: bz,
 				})
-				return s.baseCtx.WithClient(c)
+				return s.baseCtx.WithClient(c).WithViper(viper.New())
 			},
 			append(
 				[]string{

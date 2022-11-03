@@ -26,7 +26,10 @@ func CollectGenTxsCmd(genBalIterator types.GenesisBalancesIterator, defaultNodeH
 			serverCtx := server.GetServerContextFromCmd(cmd)
 			config := serverCtx.Config
 
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
+			if err != nil {
+				return err
+			}
 			cdc := clientCtx.Codec
 
 			config.SetRoot(clientCtx.HomeDir)

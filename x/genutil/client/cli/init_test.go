@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client/configinit"
 	"io"
 	"os"
 	"testing"
@@ -68,7 +69,8 @@ func TestInitCmd(t *testing.T) {
 			clientCtx := client.Context{}.
 				WithCodec(marshaler).
 				WithLegacyAmino(makeCodec()).
-				WithHomeDir(home)
+				WithHomeDir(home).
+				WithViper(viper.New())
 
 			ctx := context.Background()
 			ctx = context.WithValue(ctx, client.ClientContextKey, &clientCtx)
@@ -101,7 +103,8 @@ func TestInitRecover(t *testing.T) {
 	clientCtx := client.Context{}.
 		WithCodec(marshaler).
 		WithLegacyAmino(makeCodec()).
-		WithHomeDir(home)
+		WithHomeDir(home).
+		WithViper(viper.New())
 
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, client.ClientContextKey, &clientCtx)
@@ -132,7 +135,8 @@ func TestInitDefaultBondDenom(t *testing.T) {
 	clientCtx := client.Context{}.
 		WithCodec(marshaler).
 		WithLegacyAmino(makeCodec()).
-		WithHomeDir(home)
+		WithHomeDir(home).
+		WithViper(viper.New())
 
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, client.ClientContextKey, &clientCtx)
@@ -145,6 +149,7 @@ func TestInitDefaultBondDenom(t *testing.T) {
 		fmt.Sprintf("--%s=%s", cli.HomeFlag, home),
 		fmt.Sprintf("--%s=testtoken", genutilcli.FlagDefaultBondDenom),
 	})
+	require.NoError(t, configinit.InitiateViper(clientCtx.Viper, cmd, "TESTD"))
 	require.NoError(t, cmd.ExecuteContext(ctx))
 }
 
@@ -160,7 +165,8 @@ func TestEmptyState(t *testing.T) {
 	clientCtx := client.Context{}.
 		WithCodec(marshaler).
 		WithLegacyAmino(makeCodec()).
-		WithHomeDir(home)
+		WithHomeDir(home).
+		WithViper(viper.New())
 
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, client.ClientContextKey, &clientCtx)
@@ -169,6 +175,7 @@ func TestEmptyState(t *testing.T) {
 	cmd := genutilcli.InitCmd(testMbm, home)
 	cmd.SetArgs([]string{"appnode-test", fmt.Sprintf("--%s=%s", cli.HomeFlag, home)})
 
+	require.NoError(t, configinit.InitiateViper(clientCtx.Viper, cmd, "TESTD"))
 	require.NoError(t, cmd.ExecuteContext(ctx))
 
 	old := os.Stdout
@@ -251,7 +258,8 @@ func TestInitConfig(t *testing.T) {
 		WithCodec(marshaler).
 		WithLegacyAmino(makeCodec()).
 		WithChainID("foo"). // add chain-id to clientCtx
-		WithHomeDir(home)
+		WithHomeDir(home).
+		WithViper(viper.New())
 
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, client.ClientContextKey, &clientCtx)
@@ -260,6 +268,7 @@ func TestInitConfig(t *testing.T) {
 	cmd := genutilcli.InitCmd(testMbm, home)
 	cmd.SetArgs([]string{"testnode"})
 
+	require.NoError(t, configinit.InitiateViper(clientCtx.Viper, cmd, "TESTD"))
 	require.NoError(t, cmd.ExecuteContext(ctx))
 
 	old := os.Stdout

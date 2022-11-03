@@ -3,6 +3,8 @@ package keys
 import (
 	"context"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client/configinit"
+	"github.com/spf13/viper"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -48,10 +50,12 @@ func Test_runDeleteCmd(t *testing.T) {
 
 	clientCtx := client.Context{}.
 		WithKeyringDir(kbHome).
-		WithCodec(cdc)
+		WithCodec(cdc).
+		WithViper(viper.New())
 
 	ctx := context.WithValue(context.Background(), client.ClientContextKey, &clientCtx)
 
+	require.NoError(t, configinit.InitiateViper(clientCtx.Viper, cmd, "TESTD"))
 	err = cmd.ExecuteContext(ctx)
 	require.Error(t, err)
 	require.EqualError(t, err, "blah.info: key not found")

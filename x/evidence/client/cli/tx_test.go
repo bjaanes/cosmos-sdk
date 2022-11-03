@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/spf13/viper"
 	"io"
 	"strings"
 	"testing"
@@ -64,7 +65,8 @@ func TestGetQueryCmd(t *testing.T) {
 		WithClient(mockTendermintRPC{Client: rpcclientmock.Client{}}).
 		WithAccountRetriever(client.MockAccountRetriever{}).
 		WithOutput(io.Discard).
-		WithChainID("test-chain")
+		WithChainID("test-chain").
+		WithViper(viper.New())
 
 	testCases := map[string]struct {
 		args           []string

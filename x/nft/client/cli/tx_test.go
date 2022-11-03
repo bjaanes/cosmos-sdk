@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/spf13/viper"
 	"io"
 	"testing"
 
@@ -119,7 +120,8 @@ func (s *CLITestSuite) SetupSuite() {
 		WithClient(mockTendermintRPC{Client: rpcclientmock.Client{}}).
 		WithAccountRetriever(client.MockAccountRetriever{}).
 		WithOutput(io.Discard).
-		WithChainID("test-chain")
+		WithChainID("test-chain").
+		WithViper(viper.New())
 
 	s.ctx = svrcmd.CreateExecuteContext(context.Background())
 	var outBuf bytes.Buffer

@@ -60,7 +60,10 @@ $ %s debug pubkey '{"@type":"/cosmos.crypto.secp256k1.PubKey","key":"AurroA7jvfP
 			`, version.AppName),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
+			if err != nil {
+				return err
+			}
 			pk, err := getPubKeyFromString(clientCtx, args[0])
 			if err != nil {
 				return err
@@ -135,7 +138,10 @@ $ %s debug pubkey-raw cosmos1e0jnq2sun3dzjh8p2xq95kk0expwmd7shwjpfg
 			`, version.AppName, version.AppName),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
+			if err != nil {
+				return err
+			}
 
 			pubkeyType, err := cmd.Flags().GetString(flagPubkeyType)
 			if err != nil {

@@ -21,7 +21,10 @@ Read a transaction from <file>, serialize it to the Protobuf wire protocol, and 
 If you supply a dash (-) argument in place of an input filename, the command reads from standard input.`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
+			if err != nil {
+				return err
+			}
 
 			tx, err := authclient.ReadTxFromFile(clientCtx, args[0])
 			if err != nil {

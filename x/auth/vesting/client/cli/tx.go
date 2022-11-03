@@ -52,7 +52,7 @@ set by the committed block's time. The end_time must be provided as a UNIX epoch
 timestamp.`,
 		Args: cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
 				return err
 			}
@@ -75,7 +75,7 @@ timestamp.`,
 
 			msg := types.NewMsgCreateVestingAccount(clientCtx.GetFromAddress(), toAddr, amount, endTime, delayed)
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, msg)
 		},
 	}
 
@@ -96,7 +96,7 @@ tokens may be used for staking but are non-transferable. Staking rewards will ac
 tokens.`,
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
 				return err
 			}
@@ -112,7 +112,7 @@ tokens.`,
 
 			msg := types.NewMsgCreatePermanentLockedAccount(clientCtx.GetFromAddress(), toAddr, amount)
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, msg)
 		},
 	}
 
@@ -156,7 +156,7 @@ func NewMsgCreatePeriodicVestingAccountCmd() *cobra.Command {
 		`,
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
 				return err
 			}
@@ -199,7 +199,7 @@ func NewMsgCreatePeriodicVestingAccountCmd() *cobra.Command {
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, msg)
 		},
 	}
 

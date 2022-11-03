@@ -3,6 +3,8 @@ package keys
 import (
 	"context"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client/configinit"
+	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
 	"testing"
@@ -88,7 +90,8 @@ HbP+c6JmeJy9JXe2rbbF1QtCX1gLqGcDQPBXiCtFvP7/8wTZtVOPj8vREzhZ9ElO
 				WithKeyringDir(kbHome).
 				WithKeyring(kb).
 				WithInput(mockIn).
-				WithCodec(cdc)
+				WithCodec(cdc).
+				WithViper(viper.New())
 			ctx := context.WithValue(context.Background(), client.ClientContextKey, &clientCtx)
 
 			t.Cleanup(cleanupKeys(t, kb, "keyname1"))
@@ -106,6 +109,7 @@ HbP+c6JmeJy9JXe2rbbF1QtCX1gLqGcDQPBXiCtFvP7/8wTZtVOPj8vREzhZ9ElO
 				fmt.Sprintf("--%s=%s", flags.FlagKeyringBackend, tc.keyringBackend),
 			})
 
+			require.NoError(t, configinit.InitiateViper(clientCtx.Viper, cmd, "TESTD"))
 			err = cmd.ExecuteContext(ctx)
 			if tc.expectError {
 				require.Error(t, err)

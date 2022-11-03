@@ -3,6 +3,8 @@ package keys
 import (
 	"context"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client/configinit"
+	"github.com/spf13/viper"
 	"strings"
 	"testing"
 
@@ -71,7 +73,7 @@ func (s *MigrateTestSuite) Test_runListAndShowCmd() {
 	s.Require().True(ok)
 	s.Require().NoError(setter.SetItem(item))
 
-	clientCtx := client.Context{}.WithKeyring(kb)
+	clientCtx := client.Context{}.WithKeyring(kb).WithViper(viper.New())
 	ctx := context.WithValue(context.Background(), client.ClientContextKey, &clientCtx)
 
 	cmd.SetArgs([]string{
@@ -110,8 +112,9 @@ func (s *MigrateTestSuite) Test_runMigrateCmdRecord() {
 	s.Require().True(ok)
 	s.Require().NoError(setter.SetItem(item))
 
-	clientCtx := client.Context{}.WithKeyring(kb)
+	clientCtx := client.Context{}.WithKeyring(kb).WithViper(viper.New())
 	ctx := context.WithValue(context.Background(), client.ClientContextKey, &clientCtx)
+	s.Require().NoError(configinit.InitiateViper(clientCtx.Viper, cmd, "TESTD"))
 	s.Require().NoError(cmd.ExecuteContext(ctx))
 }
 
@@ -143,7 +146,7 @@ func (s *MigrateTestSuite) Test_runMigrateCmdLegacyMultiInfo() {
 	s.Require().True(ok)
 	s.Require().NoError(setter.SetItem(item))
 
-	clientCtx := client.Context{}.WithKeyring(kb)
+	clientCtx := client.Context{}.WithKeyring(kb).WithViper(viper.New())
 	ctx := context.WithValue(context.Background(), client.ClientContextKey, &clientCtx)
 	s.Require().NoError(cmd.ExecuteContext(ctx))
 }

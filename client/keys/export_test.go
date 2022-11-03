@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client/configinit"
+	"github.com/spf13/viper"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -99,9 +101,11 @@ func Test_runExportCmd(t *testing.T) {
 				WithKeyringDir(kbHome).
 				WithKeyring(kb).
 				WithInput(mockInBuf).
-				WithCodec(cdc)
+				WithCodec(cdc).
+				WithViper(viper.New())
 			ctx := context.WithValue(context.Background(), client.ClientContextKey, &clientCtx)
 
+			require.NoError(t, configinit.InitiateViper(clientCtx.Viper, cmd, "TESTD"))
 			err = cmd.ExecuteContext(ctx)
 			if tc.mustFail {
 				require.Error(t, err)

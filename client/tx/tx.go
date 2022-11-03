@@ -8,9 +8,6 @@ import (
 	"fmt"
 	"os"
 
-	gogogrpc "github.com/cosmos/gogoproto/grpc"
-	"github.com/spf13/pflag"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/input"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -19,12 +16,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+	gogogrpc "github.com/cosmos/gogoproto/grpc"
 )
 
 // GenerateOrBroadcastTxCLI will either generate and print and unsigned transaction
 // or sign it and broadcast it returning an error upon failure.
-func GenerateOrBroadcastTxCLI(clientCtx client.Context, flagSet *pflag.FlagSet, msgs ...sdk.Msg) error {
-	txf := NewFactoryCLI(clientCtx, flagSet)
+func GenerateOrBroadcastTxCLI(clientCtx client.Context, msgs ...sdk.Msg) error {
+	txf := NewFactoryCLI(clientCtx)
 
 	return GenerateOrBroadcastTxWithFactory(clientCtx, txf, msgs...)
 }

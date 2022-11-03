@@ -2,6 +2,7 @@ package cli_test
 
 import (
 	"context"
+	"github.com/spf13/viper"
 	"io"
 	"testing"
 
@@ -64,5 +65,6 @@ func (s *CLITestSuite) SetupSuite() {
 		WithCodec(s.encCfg.Codec).
 		WithClient(mockTendermintRPC{Client: rpcclientmock.Client{}}).
 		WithAccountRetriever(client.MockAccountRetriever{}).
-		WithOutput(io.Discard)
+		WithOutput(io.Discard).
+		WithViper(viper.New())
 }

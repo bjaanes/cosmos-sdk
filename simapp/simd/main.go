@@ -10,8 +10,9 @@ import (
 )
 
 func main() {
-	rootCmd := cmd.NewRootCmd()
-	if err := svrcmd.Execute(rootCmd, "", simapp.DefaultNodeHome); err != nil {
+	envPrefix := "SIMD"
+	rootCmd := cmd.NewRootCmd(envPrefix)
+	if err := svrcmd.Execute(rootCmd, envPrefix, simapp.DefaultNodeHome); err != nil {
 		switch e := err.(type) {
 		case server.ErrorCode:
 			os.Exit(e.Code)

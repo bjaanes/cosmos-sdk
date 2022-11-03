@@ -3,6 +3,8 @@ package client_test
 import (
 	"context"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client/configinit"
+	"github.com/spf13/viper"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -56,16 +58,20 @@ func TestValidateCmd(t *testing.T) {
 }
 
 func TestSetCmdClientContextHandler(t *testing.T) {
-	initClientCtx := client.Context{}.WithHomeDir("/foo/bar").WithChainID("test-chain").WithKeyringDir("/foo/bar")
+	v := viper.New()
+	initClientCtx := client.Context{}.WithHomeDir("/foo/bar").WithChainID("test-chain").WithKeyringDir("/foo/bar").WithViper(v)
 
 	newCmd := func() *cobra.Command {
 		c := &cobra.Command{
-			PreRunE: func(cmd *cobra.Command, args []string) error {
-				return client.SetCmdClientContextHandler(initClientCtx, cmd)
+			Run: func(cmd *cobra.Command, args []string) {
+
 			},
-			RunE: func(cmd *cobra.Command, _ []string) error {
-				_, err := client.GetClientTxContext(cmd)
-				return err
+			PreRunE: func(cmd *cobra.Command, args []string) error {
+				if err := configinit.InitiateViper(v, cmd, "TESTD"); err != nil {
+					return err
+				}
+
+				return client.SetCmdClientContextHandler(initClientCtx, cmd)
 			},
 		}
 
@@ -112,9 +118,11 @@ func TestSetCmdClientContextHandler(t *testing.T) {
 			_ = testutil.ApplyMockIODiscardOutErr(cmd)
 			cmd.SetArgs(tc.args)
 
+			//cmd.PreRunE
 			require.NoError(t, cmd.ExecuteContext(ctx))
 
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
+			require.NoError(t, err)
 			require.Equal(t, tc.expectedContext, clientCtx)
 		})
 	}

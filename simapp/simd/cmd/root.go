@@ -2,6 +2,9 @@ package cmd
 
 import (
 	"errors"
+	"github.com/cosmos/cosmos-sdk/client/config"
+	"github.com/cosmos/cosmos-sdk/client/configinit"
+	"github.com/cosmos/cosmos-sdk/client/configcmd"
 	"io"
 	"os"
 	"path/filepath"
@@ -17,7 +20,6 @@ import (
 	"cosmossdk.io/simapp/params"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/keys"
@@ -42,7 +44,7 @@ import (
 
 // NewRootCmd creates a new root command for simd. It is called once in the
 // main function.
-func NewRootCmd() *cobra.Command {
+func NewRootCmd(envPrefix string) *cobra.Command {
 	// we "pre"-instantiate the application for getting the injected/configured encoding configuration
 	tempApp := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, simutil.EmptyAppOptions{})
 	encodingConfig := params.EncodingConfig{
@@ -52,6 +54,8 @@ func NewRootCmd() *cobra.Command {
 		Amino:             tempApp.LegacyAmino(),
 	}
 
+	v := viper.New()
+
 	initClientCtx := client.Context{}.
 		WithCodec(encodingConfig.Codec).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
@@ -60,7 +64,7 @@ func NewRootCmd() *cobra.Command {
 		WithInput(os.Stdin).
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithHomeDir(simapp.DefaultNodeHome).
-		WithViper("") // In simapp, we don't use any prefix for env variables.
+		WithViper(v)
 
 	rootCmd := &cobra.Command{
 		Use:   "simd",
@@ -70,13 +74,11 @@ func NewRootCmd() *cobra.Command {
 			cmd.SetOut(cmd.OutOrStdout())
 			cmd.SetErr(cmd.ErrOrStderr())
 
-			initClientCtx, err := client.ReadPersistentCommandFlags(initClientCtx, cmd.Flags())
-			if err != nil {
+			if err := configinit.InitiateViper(v, cmd, envPrefix); err != nil {
 				return err
 			}
 
-			initClientCtx, err = config.ReadFromClientConfig(initClientCtx)
-			if err != nil {
+			if err := config.LoadClientConfigFile(initClientCtx.Viper, initClientCtx.HomeDir); err != nil {
 				return err
 			}
 
@@ -86,8 +88,7 @@ func NewRootCmd() *cobra.Command {
 
 			customAppTemplate, customAppConfig := initAppConfig()
 			customTMConfig := initTendermintConfig()
-
-			return server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customTMConfig)
+			return server.InterceptConfigsPreRunHandler(v, cmd, customAppTemplate, customAppConfig, customTMConfig)
 		},
 	}
 
@@ -181,7 +182,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 		AddGenesisAccountCmd(simapp.DefaultNodeHome),
 		NewTestnetCmd(simapp.ModuleBasics, banktypes.GenesisBalancesIterator{}),
 		debug.Cmd(),
-		config.Cmd(),
+		configcmd.Cmd(),
 		pruning.PruningCmd(newApp),
 	)
 

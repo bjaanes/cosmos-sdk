@@ -29,7 +29,7 @@ private keys stored in a ledger device cannot be deleted with the CLI.
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			buf := bufio.NewReader(cmd.InOrStdin())
-			clientCtx, err := client.GetClientQueryContext(cmd)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
 				return err
 			}

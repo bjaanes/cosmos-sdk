@@ -71,7 +71,7 @@ The SIGN_MODE_DIRECT sign mode is not supported.'
 
 func makeMultiSignCmd() func(cmd *cobra.Command, args []string) (err error) {
 	return func(cmd *cobra.Command, args []string) (err error) {
-		clientCtx, err := client.GetClientTxContext(cmd)
+		clientCtx, err := client.GetClientContextFromCmd(cmd)
 		if err != nil {
 			return err
 		}
@@ -80,7 +80,7 @@ func makeMultiSignCmd() func(cmd *cobra.Command, args []string) (err error) {
 			return
 		}
 
-		txFactory := tx.NewFactoryCLI(clientCtx, cmd.Flags())
+		txFactory := tx.NewFactoryCLI(clientCtx)
 		if txFactory.SignMode() == signingtypes.SignMode_SIGN_MODE_UNSPECIFIED {
 			txFactory = txFactory.WithSignMode(signingtypes.SignMode_SIGN_MODE_LEGACY_AMINO_JSON)
 		}
@@ -245,15 +245,13 @@ The SIGN_MODE_DIRECT sign mode is not supported.'
 
 func makeBatchMultisignCmd() func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) (err error) {
-		var clientCtx client.Context
-
-		clientCtx, err = client.GetClientTxContext(cmd)
+		clientCtx, err := client.GetClientContextFromCmd(cmd)
 		if err != nil {
 			return err
 		}
 
 		txCfg := clientCtx.TxConfig
-		txFactory := tx.NewFactoryCLI(clientCtx, cmd.Flags())
+		txFactory := tx.NewFactoryCLI(clientCtx)
 		if txFactory.SignMode() == signingtypes.SignMode_SIGN_MODE_UNSPECIFIED {
 			txFactory = txFactory.WithSignMode(signingtypes.SignMode_SIGN_MODE_LEGACY_AMINO_JSON)
 		}

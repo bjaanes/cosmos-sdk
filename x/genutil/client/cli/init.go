@@ -73,7 +73,10 @@ func InitCmd(mbm module.BasicManager, defaultNodeHome string) *cobra.Command {
 		Long:  `Initialize validators's and node's configuration files.`,
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
+			if err != nil {
+				return err
+			}
 			cdc := clientCtx.Codec
 
 			serverCtx := server.GetServerContextFromCmd(cmd)

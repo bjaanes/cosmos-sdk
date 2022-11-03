@@ -26,7 +26,7 @@ func ExecInitCmd(testMbm module.BasicManager, home string, cdc codec.Codec) erro
 
 	cmd := genutilcli.InitCmd(testMbm, home)
 	serverCtx := server.NewContext(viper.New(), cfg, logger)
-	clientCtx := client.Context{}.WithCodec(cdc).WithHomeDir(home)
+	clientCtx := client.Context{}.WithCodec(cdc).WithHomeDir(home).WithViper(viper.New())
 
 	_, out := testutil.ApplyMockIO(cmd)
 	clientCtx = clientCtx.WithOutput(out)

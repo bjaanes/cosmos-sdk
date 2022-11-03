@@ -3,6 +3,8 @@ package cli_test
 import (
 	"context"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client/configinit"
+	"github.com/spf13/viper"
 	"io"
 	"testing"
 
@@ -42,7 +44,8 @@ func TestNewMsgVerifyInvariantTxCmd(t *testing.T) {
 		WithClient(mockTendermintRPC{Client: rpcclientmock.Client{}}).
 		WithAccountRetriever(client.MockAccountRetriever{}).
 		WithOutput(io.Discard).
-		WithChainID("test-chain")
+		WithChainID("test-chain").
+		WithViper(viper.New())
 
 	accounts := testutil.CreateKeyringAccounts(t, kr, 1)
 	testCases := []struct {
@@ -99,6 +102,7 @@ func TestNewMsgVerifyInvariantTxCmd(t *testing.T) {
 			cmd.SetContext(ctx)
 			cmd.SetArgs(tc.args)
 
+			require.NoError(t, configinit.InitiateViper(baseCtx.Viper, cmd, "TESTD"))
 			require.NoError(t, client.SetCmdClientContextHandler(baseCtx, cmd))
 
 			err := cmd.Execute()

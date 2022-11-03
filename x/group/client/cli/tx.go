@@ -79,12 +79,9 @@ Where members.json contains:
 }`, version.AppName),
 		Args: cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := cmd.Flags().Set(flags.FlagFrom, args[0])
-			if err != nil {
-				return err
-			}
-
-			clientCtx, err := client.GetClientTxContext(cmd)
+			from := args[0]
+			_ = cmd.Flags().Set(flags.FlagFrom, from)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
 				return err
 			}
@@ -103,7 +100,7 @@ Where members.json contains:
 				return fmt.Errorf("message validation failed: %w", err)
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, msg)
 		},
 	}
 
@@ -141,12 +138,9 @@ Set a member's weight to "0" to delete it.
 `, version.AppName),
 		Args: cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := cmd.Flags().Set(flags.FlagFrom, args[0])
-			if err != nil {
-				return err
-			}
-
-			clientCtx, err := client.GetClientTxContext(cmd)
+			from := args[0]
+			_ = cmd.Flags().Set(flags.FlagFrom, from)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
 				return err
 			}
@@ -170,7 +164,7 @@ Set a member's weight to "0" to delete it.
 				return fmt.Errorf("message validation failed: %w", err)
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, msg)
 		},
 	}
 
@@ -186,12 +180,9 @@ func MsgUpdateGroupAdminCmd() *cobra.Command {
 		Short: "Update a group's admin",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := cmd.Flags().Set(flags.FlagFrom, args[0])
-			if err != nil {
-				return err
-			}
-
-			clientCtx, err := client.GetClientTxContext(cmd)
+			from := args[0]
+			_ = cmd.Flags().Set(flags.FlagFrom, from)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
 				return err
 			}
@@ -210,7 +201,7 @@ func MsgUpdateGroupAdminCmd() *cobra.Command {
 				return fmt.Errorf("message validation failed: %w", err)
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, msg)
 		},
 	}
 
@@ -226,12 +217,9 @@ func MsgUpdateGroupMetadataCmd() *cobra.Command {
 		Short: "Update a group's metadata",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := cmd.Flags().Set(flags.FlagFrom, args[0])
-			if err != nil {
-				return err
-			}
-
-			clientCtx, err := client.GetClientTxContext(cmd)
+			from := args[0]
+			_ = cmd.Flags().Set(flags.FlagFrom, from)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
 				return err
 			}
@@ -250,7 +238,7 @@ func MsgUpdateGroupMetadataCmd() *cobra.Command {
 				return fmt.Errorf("message validation failed: %w", err)
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, msg)
 		},
 	}
 
@@ -301,12 +289,9 @@ and policy.json contains:
 `, version.AppName),
 		Args: cobra.MinimumNArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := cmd.Flags().Set(flags.FlagFrom, args[0])
-			if err != nil {
-				return err
-			}
-
-			clientCtx, err := client.GetClientTxContext(cmd)
+			from := args[0]
+			_ = cmd.Flags().Set(flags.FlagFrom, from)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
 				return err
 			}
@@ -342,7 +327,7 @@ and policy.json contains:
 				return fmt.Errorf("message validation failed: %w", err)
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, msg)
 		},
 	}
 	cmd.Flags().Bool(FlagGroupPolicyAsAdmin, false, "Sets admin of the newly created group and group policy with group policy address itself when true")
@@ -382,12 +367,9 @@ Here, we can use percentage decision policy when needed, where 0 < percentage <=
 }`, version.AppName),
 		Args: cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := cmd.Flags().Set(flags.FlagFrom, args[0])
-			if err != nil {
-				return err
-			}
-
-			clientCtx, err := client.GetClientTxContext(cmd)
+			from := args[0]
+			_ = cmd.Flags().Set(flags.FlagFrom, from)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
 				return err
 			}
@@ -415,7 +397,7 @@ Here, we can use percentage decision policy when needed, where 0 < percentage <=
 				return fmt.Errorf("message validation failed: %w", err)
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, msg)
 		},
 	}
 
@@ -431,12 +413,9 @@ func MsgUpdateGroupPolicyAdminCmd() *cobra.Command {
 		Short: "Update a group policy admin",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := cmd.Flags().Set(flags.FlagFrom, args[0])
-			if err != nil {
-				return err
-			}
-
-			clientCtx, err := client.GetClientTxContext(cmd)
+			from := args[0]
+			_ = cmd.Flags().Set(flags.FlagFrom, from)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
 				return err
 			}
@@ -446,11 +425,11 @@ func MsgUpdateGroupPolicyAdminCmd() *cobra.Command {
 				GroupPolicyAddress: args[1],
 				NewAdmin:           args[2],
 			}
-			if err = msg.ValidateBasic(); err != nil {
+			if err := msg.ValidateBasic(); err != nil {
 				return fmt.Errorf("message validation failed: %w", err)
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, msg)
 		},
 	}
 
@@ -466,12 +445,9 @@ func MsgUpdateGroupPolicyDecisionPolicyCmd() *cobra.Command {
 		Short: "Update a group policy's decision policy",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := cmd.Flags().Set(flags.FlagFrom, args[0])
-			if err != nil {
-				return err
-			}
-
-			clientCtx, err := client.GetClientTxContext(cmd)
+			from := args[0]
+			_ = cmd.Flags().Set(flags.FlagFrom, from)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
 				return err
 			}
@@ -499,7 +475,7 @@ func MsgUpdateGroupPolicyDecisionPolicyCmd() *cobra.Command {
 				return fmt.Errorf("message validation failed: %w", err)
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, msg)
 		},
 	}
 
@@ -515,12 +491,9 @@ func MsgUpdateGroupPolicyMetadataCmd() *cobra.Command {
 		Short: "Update a group policy metadata",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := cmd.Flags().Set(flags.FlagFrom, args[0])
-			if err != nil {
-				return err
-			}
-
-			clientCtx, err := client.GetClientTxContext(cmd)
+			from := args[0]
+			_ = cmd.Flags().Set(flags.FlagFrom, from)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
 				return err
 			}
@@ -530,11 +503,11 @@ func MsgUpdateGroupPolicyMetadataCmd() *cobra.Command {
 				GroupPolicyAddress: args[1],
 				Metadata:           args[2],
 			}
-			if err = msg.ValidateBasic(); err != nil {
+			if err := msg.ValidateBasic(); err != nil {
 				return fmt.Errorf("message validation failed: %w", err)
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, msg)
 		},
 	}
 
@@ -579,9 +552,9 @@ Parameters:
 
 			// Since the --from flag is not required on this CLI command, we
 			// ignore it, and just use the 1st proposer in the JSON file.
-			cmd.Flags().Set(flags.FlagFrom, prop.Proposers[0])
-
-			clientCtx, err := client.GetClientTxContext(cmd)
+			from := prop.Proposers[0]
+			_ = cmd.Flags().Set(flags.FlagFrom, from)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
 				return err
 			}
@@ -608,7 +581,7 @@ Parameters:
 				return fmt.Errorf("message validation failed: %w", err)
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, msg)
 		},
 	}
 
@@ -632,12 +605,9 @@ Parameters:
 `,
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := cmd.Flags().Set(flags.FlagFrom, args[1])
-			if err != nil {
-				return err
-			}
-
-			clientCtx, err := client.GetClientTxContext(cmd)
+			from := args[1]
+			_ = cmd.Flags().Set(flags.FlagFrom, from)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
 				return err
 			}
@@ -660,7 +630,7 @@ Parameters:
 				return fmt.Errorf("message validation failed: %w", err)
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, msg)
 		},
 	}
 
@@ -689,12 +659,9 @@ Parameters:
 `,
 		Args: cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := cmd.Flags().Set(flags.FlagFrom, args[1])
-			if err != nil {
-				return err
-			}
-
-			clientCtx, err := client.GetClientTxContext(cmd)
+			from := args[1]
+			_ = cmd.Flags().Set(flags.FlagFrom, from)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
 				return err
 			}
@@ -726,7 +693,7 @@ Parameters:
 				return fmt.Errorf("message validation failed: %w", err)
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, msg)
 		},
 	}
 
@@ -743,7 +710,7 @@ func MsgExecCmd() *cobra.Command {
 		Short: "Execute a proposal",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
 				return err
 			}
@@ -765,7 +732,7 @@ func MsgExecCmd() *cobra.Command {
 				return fmt.Errorf("message validation failed: %w", err)
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, msg)
 		},
 	}
 
@@ -788,8 +755,9 @@ Parameters:
 		`,
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cmd.Flags().Set(flags.FlagFrom, args[0])
-			clientCtx, err := client.GetClientTxContext(cmd)
+			from := args[0]
+			_ = cmd.Flags().Set(flags.FlagFrom, from)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
 				return err
 			}
@@ -807,7 +775,7 @@ Parameters:
 				return fmt.Errorf("message validation failed: %w", err)
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, msg)
 		},
 	}
 

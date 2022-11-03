@@ -6,8 +6,6 @@ import (
 	"os"
 
 	"cosmossdk.io/math"
-	"github.com/spf13/pflag"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -44,7 +42,7 @@ type Factory struct {
 }
 
 // NewFactoryCLI creates a new Factory.
-func NewFactoryCLI(clientCtx client.Context, flagSet *pflag.FlagSet) Factory {
+func NewFactoryCLI(clientCtx client.Context) Factory {
 	signModeStr := clientCtx.SignModeStr
 
 	signMode := signing.SignMode_SIGN_MODE_UNSPECIFIED
@@ -59,13 +57,14 @@ func NewFactoryCLI(clientCtx client.Context, flagSet *pflag.FlagSet) Factory {
 		signMode = signing.SignMode_SIGN_MODE_EIP_191
 	}
 
-	accNum, _ := flagSet.GetUint64(flags.FlagAccountNumber)
-	accSeq, _ := flagSet.GetUint64(flags.FlagSequence)
-	gasAdj, _ := flagSet.GetFloat64(flags.FlagGasAdjustment)
-	memo, _ := flagSet.GetString(flags.FlagNote)
-	timeoutHeight, _ := flagSet.GetUint64(flags.FlagTimeoutHeight)
+	v := clientCtx.Viper
+	accNum := v.GetUint64(flags.FlagAccountNumber)
+	accSeq := v.GetUint64(flags.FlagSequence)
+	gasAdj := v.GetFloat64(flags.FlagGasAdjustment)
+	memo := v.GetString(flags.FlagNote)
+	timeoutHeight := v.GetUint64(flags.FlagTimeoutHeight)
 
-	gasStr, _ := flagSet.GetString(flags.FlagGas)
+	gasStr := v.GetString(flags.FlagGas)
 	gasSetting, _ := flags.ParseGasSetting(gasStr)
 
 	f := Factory{
@@ -87,15 +86,15 @@ func NewFactoryCLI(clientCtx client.Context, flagSet *pflag.FlagSet) Factory {
 		feePayer:           clientCtx.FeePayer,
 	}
 
-	feesStr, _ := flagSet.GetString(flags.FlagFees)
+	feesStr := v.GetString(flags.FlagFees)
 	f = f.WithFees(feesStr)
 
-	tipsStr, _ := flagSet.GetString(flags.FlagTip)
+	tipsStr := v.GetString(flags.FlagTip)
 	// Add tips to factory. The tipper is necessarily the Msg signer, i.e.
 	// the from address.
 	f = f.WithTips(tipsStr, clientCtx.FromAddress.String())
 
-	gasPricesStr, _ := flagSet.GetString(flags.FlagGasPrices)
+	gasPricesStr := v.GetString(flags.FlagGasPrices)
 	f = f.WithGasPrices(gasPricesStr)
 
 	f = f.WithPreprocessTxHook(clientCtx.PreprocessTxHook)

@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/tendermint/tendermint/libs/cli"
 	"io"
 	"os"
 
@@ -253,10 +255,7 @@ func (ctx Context) WithInterfaceRegistry(interfaceRegistry codectypes.InterfaceR
 
 // WithViper returns the context with Viper field. This Viper instance is used to read
 // client-side config from the config file.
-func (ctx Context) WithViper(prefix string) Context {
-	v := viper.New()
-	v.SetEnvPrefix(prefix)
-	v.AutomaticEnv()
+func (ctx Context) WithViper(v *viper.Viper) Context {
 	ctx.Viper = v
 	return ctx
 }
@@ -408,4 +407,202 @@ func NewKeyringFromBackend(ctx Context, backend string) (keyring.Keyring, error)
 	}
 
 	return keyring.New(sdk.KeyringServiceName(), backend, ctx.KeyringDir, ctx.Input, ctx.Codec, ctx.KeyringOptions...)
+}
+
+func loadContextFromConfig(clientCtx Context) (Context, error) {
+	clientCtx, err := readPersistentConfig(clientCtx)
+	if err != nil {
+		return clientCtx, err
+	}
+
+	clientCtx, err = readQueryConfig(clientCtx)
+	if err != nil {
+		return clientCtx, err
+	}
+
+	clientCtx, err = readTxConfig(clientCtx)
+	if err != nil {
+		return clientCtx, err
+	}
+
+	return clientCtx, nil
+}
+
+func readPersistentConfig(clientCtx Context) (Context, error) {
+	v := clientCtx.Viper
+
+	if clientCtx.OutputFormat == "" || v.IsSet(cli.OutputFlag) {
+		output := v.GetString(cli.OutputFlag)
+		clientCtx = clientCtx.WithOutputFormat(output)
+	}
+
+	if clientCtx.HomeDir == "" || v.IsSet(flags.FlagHome) {
+		homeDir := v.GetString(flags.FlagHome)
+		clientCtx = clientCtx.WithHomeDir(homeDir)
+	}
+
+	if !clientCtx.Simulate || v.IsSet(flags.FlagDryRun) {
+		dryRun := v.GetBool(flags.FlagDryRun)
+		clientCtx = clientCtx.WithSimulation(dryRun)
+	}
+
+	if clientCtx.KeyringDir == "" || v.IsSet(flags.FlagKeyringDir) {
+		keyringDir := v.GetString(flags.FlagKeyringDir)
+
+		// The keyring directory is optional and falls back to the home directory
+		// if omitted.
+		if keyringDir == "" {
+			keyringDir = clientCtx.HomeDir
+		}
+
+		clientCtx = clientCtx.WithKeyringDir(keyringDir)
+	}
+
+	if clientCtx.ChainID == "" || v.IsSet(flags.FlagChainID) {
+		chainID := v.GetString(flags.FlagChainID)
+		clientCtx = clientCtx.WithChainID(chainID)
+	}
+
+	if clientCtx.Keyring == nil || v.IsSet(flags.FlagKeyringBackend) {
+		keyringBackend := v.GetString(flags.FlagKeyringBackend)
+
+		if keyringBackend != "" {
+			kr, err := NewKeyringFromBackend(clientCtx, keyringBackend)
+			if err != nil {
+				return clientCtx, err
+			}
+
+			clientCtx = clientCtx.WithKeyring(kr)
+		}
+	}
+
+	if clientCtx.Client == nil || v.IsSet(flags.FlagNode) {
+		rpcURI := v.GetString(flags.FlagNode)
+		if rpcURI != "" {
+			clientCtx = clientCtx.WithNodeURI(rpcURI)
+
+			client, err := NewClientFromNode(rpcURI)
+			if err != nil {
+				return clientCtx, err
+			}
+
+			clientCtx = clientCtx.WithClient(client)
+		}
+	}
+
+	return clientCtx, nil
+}
+
+func readQueryConfig(clientCtx Context) (Context, error) {
+	v := clientCtx.Viper
+
+	if clientCtx.Height == 0 || v.IsSet(flags.FlagHeight) {
+		height := v.GetInt64(flags.FlagHeight)
+		clientCtx = clientCtx.WithHeight(height)
+	}
+
+	if !clientCtx.UseLedger || v.IsSet(flags.FlagUseLedger) {
+		useLedger := v.GetBool(flags.FlagUseLedger)
+		clientCtx = clientCtx.WithUseLedger(useLedger)
+	}
+
+	return clientCtx, nil
+}
+
+func readTxConfig(clientCtx Context) (Context, error) {
+	v := clientCtx.Viper
+
+	if !clientCtx.GenerateOnly || v.IsSet(flags.FlagGenerateOnly) {
+		genOnly := v.GetBool(flags.FlagGenerateOnly)
+		clientCtx = clientCtx.WithGenerateOnly(genOnly)
+	}
+
+	if !clientCtx.Offline || v.IsSet(flags.FlagOffline) {
+		offline := v.GetBool(flags.FlagOffline)
+		clientCtx = clientCtx.WithOffline(offline)
+	}
+
+	if !clientCtx.UseLedger || v.IsSet(flags.FlagUseLedger) {
+		useLedger := v.GetBool(flags.FlagUseLedger)
+		clientCtx = clientCtx.WithUseLedger(useLedger)
+	}
+
+	if clientCtx.BroadcastMode == "" || v.IsSet(flags.FlagBroadcastMode) {
+		bMode := v.GetString(flags.FlagBroadcastMode)
+		clientCtx = clientCtx.WithBroadcastMode(bMode)
+	}
+
+	if !clientCtx.SkipConfirm || v.IsSet(flags.FlagSkipConfirmation) {
+		skipConfirm := v.GetBool(flags.FlagSkipConfirmation)
+		clientCtx = clientCtx.WithSkipConfirmation(skipConfirm)
+	}
+
+	if clientCtx.SignModeStr == "" || v.IsSet(flags.FlagSignMode) {
+		signModeStr := v.GetString(flags.FlagSignMode)
+		clientCtx = clientCtx.WithSignModeStr(signModeStr)
+	}
+
+	if clientCtx.FeePayer == nil || v.IsSet(flags.FlagFeePayer) {
+		payer := v.GetString(flags.FlagFeePayer)
+
+		if payer != "" {
+			payerAcc, err := sdk.AccAddressFromBech32(payer)
+			if err != nil {
+				return clientCtx, err
+			}
+
+			clientCtx = clientCtx.WithFeePayerAddress(payerAcc)
+		}
+	}
+
+	if clientCtx.FeeGranter == nil || v.IsSet(flags.FlagFeeGranter) {
+		granter := v.GetString(flags.FlagFeeGranter)
+
+		if granter != "" {
+			granterAcc, err := sdk.AccAddressFromBech32(granter)
+			if err != nil {
+				return clientCtx, err
+			}
+
+			clientCtx = clientCtx.WithFeeGranterAddress(granterAcc)
+		}
+	}
+
+	if clientCtx.From == "" || v.IsSet(flags.FlagFrom) {
+		from := v.GetString(flags.FlagFrom)
+		fromAddr, fromName, keyType, err := GetFromFields(clientCtx, clientCtx.Keyring, from)
+		if err != nil {
+			return clientCtx, err
+		}
+
+		clientCtx = clientCtx.WithFrom(from).WithFromAddress(fromAddr).WithFromName(fromName)
+
+		// If the `from` signer account is a ledger key, we need to use
+		// SIGN_MODE_AMINO_JSON, because ledger doesn't support proto yet.
+		// ref: https://github.com/cosmos/cosmos-sdk/issues/8109
+		if keyType == keyring.TypeLedger && clientCtx.SignModeStr != flags.SignModeLegacyAminoJSON && !clientCtx.LedgerHasProtobuf {
+			fmt.Println("Default sign-mode 'direct' not supported by Ledger, using sign-mode 'amino-json'.")
+			clientCtx = clientCtx.WithSignModeStr(flags.SignModeLegacyAminoJSON)
+		}
+	}
+
+	if !clientCtx.IsAux || v.IsSet(flags.FlagAux) {
+		isAux := v.GetBool(flags.FlagAux)
+		clientCtx = clientCtx.WithAux(isAux)
+		if isAux {
+			// If the user didn't explicitly set an --output flag, use JSON by
+			// default.
+			if clientCtx.OutputFormat == "" || !v.IsSet(cli.OutputFlag) {
+				clientCtx = clientCtx.WithOutputFormat("json")
+			}
+
+			// If the user didn't explicitly set a --sign-mode flag, use
+			// DIRECT_AUX by default.
+			if clientCtx.SignModeStr == "" || !v.IsSet(flags.FlagSignMode) {
+				clientCtx = clientCtx.WithSignModeStr(flags.SignModeDirectAux)
+			}
+		}
+	}
+
+	return clientCtx, nil
 }

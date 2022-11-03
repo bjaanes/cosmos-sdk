@@ -3,6 +3,7 @@ package cli_test
 import (
 	"context"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client/configinit"
 	"io"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -199,7 +200,8 @@ func (s *CLITestSuite) TestMultiSendTxCmd() {
 			cmd.SetContext(ctx)
 			cmd.SetArgs(args)
 
-			s.Require().NoError(client.SetCmdClientContextHandler(tc.ctxGen(), cmd))
+			s.Require().NoError(configinit.InitiateViper(tc.ctxGen().Viper, cmd, "TESTD"))
+			s.Require().NoError(client.SetCmdClientContext(cmd, tc.ctxGen()))
 
 			err := cmd.Execute()
 			if tc.expectErr {

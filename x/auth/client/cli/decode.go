@@ -20,7 +20,10 @@ func GetDecodeCommand() *cobra.Command {
 		Short: "Decode a binary encoded transaction string",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
+			if err != nil {
+				return err
+			}
 			var txBytes []byte
 
 			if useHex, _ := cmd.Flags().GetBool(flagHex); useHex {

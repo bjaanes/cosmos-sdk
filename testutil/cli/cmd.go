@@ -3,6 +3,8 @@ package cli
 import (
 	"context"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client/configinit"
+	"github.com/spf13/viper"
 
 	"github.com/spf13/cobra"
 	cli2 "github.com/tendermint/tendermint/libs/cli"
@@ -19,10 +21,20 @@ func ExecTestCLICmd(clientCtx client.Context, cmd *cobra.Command, extraArgs []st
 	_, out := testutil.ApplyMockIO(cmd)
 	clientCtx = clientCtx.WithOutput(out)
 
+	v := viper.New()
+	if err := configinit.InitiateViper(v, cmd, "TESTD"); err != nil {
+		return out, err
+	}
+	clientCtx = clientCtx.WithViper(v)
+
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, client.ClientContextKey, &clientCtx)
+	cmd.SetContext(ctx)
+	if err := client.SetCmdClientContextHandler(clientCtx, cmd); err != nil {
+		return out, err
+	}
 
-	if err := cmd.ExecuteContext(ctx); err != nil {
+	if err := cmd.Execute(); err != nil {
 		return out, err
 	}
 

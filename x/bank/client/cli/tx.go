@@ -43,8 +43,10 @@ When using '--dry-run' a key name cannot be used, only a bech32 address.
 `,
 		Args: cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cmd.Flags().Set(flags.FlagFrom, args[0])
-			clientCtx, err := client.GetClientTxContext(cmd)
+			from := args[0]
+			_ = cmd.Flags().Set(flags.FlagFrom, from)
+
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
 				return err
 			}
@@ -61,7 +63,7 @@ When using '--dry-run' a key name cannot be used, only a bech32 address.
 
 			msg := types.NewMsgSend(clientCtx.GetFromAddress(), toAddr, coins)
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, msg)
 		},
 	}
 
@@ -84,8 +86,10 @@ When using '--dry-run' a key name cannot be used, only a bech32 address.
 `,
 		Args: cobra.MinimumNArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cmd.Flags().Set(flags.FlagFrom, args[0])
-			clientCtx, err := client.GetClientTxContext(cmd)
+			from := args[0]
+			_ = cmd.Flags().Set(flags.FlagFrom, from)
+
+			clientCtx, err := client.GetClientContextFromCmd(cmd)
 			if err != nil {
 				return err
 			}
@@ -133,7 +137,7 @@ When using '--dry-run' a key name cannot be used, only a bech32 address.
 
 			msg := types.NewMsgMultiSend([]types.Input{types.NewInput(clientCtx.FromAddress, amount)}, output)
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, msg)
 		},
 	}
 

@@ -3,6 +3,7 @@ package cli_test
 import (
 	"context"
 	"encoding/base64"
+	"github.com/spf13/viper"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -48,7 +49,8 @@ func TestGetCommandEncode(t *testing.T) {
 	ctx := context.Background()
 	clientCtx := client.Context{}.
 		WithTxConfig(txCfg).
-		WithCodec(codec)
+		WithCodec(codec).
+		WithViper(viper.New())
 	ctx = context.WithValue(ctx, client.ClientContextKey, &clientCtx)
 
 	cmd.SetArgs([]string{txFileName})
@@ -73,7 +75,8 @@ func TestGetCommandDecode(t *testing.T) {
 
 	clientCtx := client.Context{}.
 		WithTxConfig(txCfg).
-		WithCodec(codec)
+		WithCodec(codec).
+		WithViper(viper.New())
 
 	cmd := cli.GetDecodeCommand()
 	_ = testutil.ApplyMockIODiscardOutErr(cmd)

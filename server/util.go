@@ -7,16 +7,13 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"path"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"syscall"
 	"time"
 
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	tmcmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
 	tmcfg "github.com/tendermint/tendermint/config"
@@ -66,39 +63,6 @@ func NewContext(v *viper.Viper, config *tmcfg.Config, logger tmlog.Logger) *Cont
 	return &Context{v, config, logger}
 }
 
-func bindFlags(basename string, cmd *cobra.Command, v *viper.Viper) (err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("bindFlags failed: %v", r)
-		}
-	}()
-
-	cmd.Flags().VisitAll(func(f *pflag.Flag) {
-		// Environment variables can't have dashes in them, so bind them to their equivalent
-		// keys with underscores, e.g. --favorite-color to STING_FAVORITE_COLOR
-		err = v.BindEnv(f.Name, fmt.Sprintf("%s_%s", basename, strings.ToUpper(strings.ReplaceAll(f.Name, "-", "_"))))
-		if err != nil {
-			panic(err)
-		}
-
-		err = v.BindPFlag(f.Name, f)
-		if err != nil {
-			panic(err)
-		}
-
-		// Apply the viper config value to the flag when the flag is not set and viper has a value
-		if !f.Changed && v.IsSet(f.Name) {
-			val := v.Get(f.Name)
-			err = cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
-			if err != nil {
-				panic(err)
-			}
-		}
-	})
-
-	return err
-}
-
 // InterceptConfigsPreRunHandler performs a pre-run function for the root daemon
 // application command. It will create a Viper literal and a default server
 // Context. The server Tendermint configuration will either be read and parsed
@@ -109,49 +73,34 @@ func bindFlags(basename string, cmd *cobra.Command, v *viper.Viper) (err error) 
 // is used to read and parse the application configuration. Command handlers can
 // fetch the server Context to get the Tendermint configuration or to get access
 // to Viper.
-func InterceptConfigsPreRunHandler(cmd *cobra.Command, customAppConfigTemplate string, customAppConfig interface{}, tmConfig *tmcfg.Config) error {
+func InterceptConfigsPreRunHandler(v *viper.Viper, cmd *cobra.Command, customAppTemplate string, customConfig interface{}, tmConfig *tmcfg.Config) error {
 	serverCtx := NewDefaultContext()
+	serverCtx.Viper = v
 
-	// Get the executable name and configure the viper instance so that environmental
-	// variables are checked based off that name. The underscore character is used
-	// as a separator
-	executableName, err := os.Executable()
-	if err != nil {
+	if err := MergeInTendermintConfigFile(v, tmConfig); err != nil {
+		return err
+	}
+	if err := MergeInAppConfigFile(v, customAppTemplate, customConfig); err != nil {
 		return err
 	}
 
-	basename := path.Base(executableName)
-
-	// Configure the viper instance
-	if err := serverCtx.Viper.BindPFlags(cmd.Flags()); err != nil {
+	if err := v.Unmarshal(serverCtx); err != nil {
 		return err
 	}
-	if err := serverCtx.Viper.BindPFlags(cmd.PersistentFlags()); err != nil {
-		return err
-	}
-	serverCtx.Viper.SetEnvPrefix(basename)
-	serverCtx.Viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
-	serverCtx.Viper.AutomaticEnv()
-
-	// intercept configuration files, using both Viper instances separately
-	config, err := interceptConfigs(serverCtx.Viper, customAppConfigTemplate, customAppConfig, tmConfig)
-	if err != nil {
+	if err := v.Unmarshal(tmConfig); err != nil {
 		return err
 	}
 
 	// return value is a tendermint configuration object
-	serverCtx.Config = config
-	if err = bindFlags(basename, cmd, serverCtx.Viper); err != nil {
-		return err
-	}
+	serverCtx.Config = tmConfig
 	logger := tmlog.NewTMLogger(tmlog.NewSyncWriter(os.Stdout))
-	logger, err = tmflags.ParseLogLevel(config.LogLevel, logger, tmcfg.DefaultLogLevel)
+	logger, err := tmflags.ParseLogLevel(tmConfig.LogLevel, logger, tmcfg.DefaultLogLevel)
 	if err != nil {
 		return err
 	}
 
 	// Check if the tendermint flag for trace logging is set
-	// if it is then setup a tracing logger in this app as well
+	// if it is then set up a tracing logger in this app as well
 	if serverCtx.Viper.GetBool(tmcli.TraceFlag) {
 		logger = tmlog.NewTracingLogger(logger)
 	}
@@ -185,83 +134,55 @@ func SetCmdServerContext(cmd *cobra.Command, serverCtx *Context) error {
 	return nil
 }
 
-// interceptConfigs parses and updates a Tendermint configuration file or
-// creates a new one and saves it. It also parses and saves the application
-// configuration file. The Tendermint configuration file is parsed given a root
-// Viper object, whereas the application is parsed with the private package-aware
-// viperCfg object.
-func interceptConfigs(rootViper *viper.Viper, customAppTemplate string, customConfig interface{}, tmConfig *tmcfg.Config) (*tmcfg.Config, error) {
-	rootDir := rootViper.GetString(flags.FlagHome)
-	configPath := filepath.Join(rootDir, "config")
-	tmCfgFile := filepath.Join(configPath, "config.toml")
+func MergeInTendermintConfigFile(v *viper.Viper, defaultConfig *tmcfg.Config) error {
+	homeDir := v.GetString(flags.FlagHome)
+	configPath := filepath.Join(homeDir, "config")
+	configFilePath := filepath.Join(configPath, "config.toml")
 
-	conf := tmConfig
+	if _, err := os.Stat(configFilePath); os.IsNotExist(err) {
+		tmcfg.EnsureRoot(configPath)
 
-	switch _, err := os.Stat(tmCfgFile); {
-	case os.IsNotExist(err):
-		tmcfg.EnsureRoot(rootDir)
-
-		if err = conf.ValidateBasic(); err != nil {
-			return nil, fmt.Errorf("error in config file: %w", err)
+		if err = defaultConfig.ValidateBasic(); err != nil {
+			return fmt.Errorf("error in config file: %w", err)
 		}
 
-		conf.RPC.PprofListenAddress = "localhost:6060"
-		conf.P2P.RecvRate = 5120000
-		conf.P2P.SendRate = 5120000
-		conf.Consensus.TimeoutCommit = 5 * time.Second
-		tmcfg.WriteConfigFile(tmCfgFile, conf)
-
-	case err != nil:
-		return nil, err
-
-	default:
-		rootViper.SetConfigType("toml")
-		rootViper.SetConfigName("config")
-		rootViper.AddConfigPath(configPath)
-
-		if err := rootViper.ReadInConfig(); err != nil {
-			return nil, fmt.Errorf("failed to read in %s: %w", tmCfgFile, err)
-		}
+		defaultConfig.RPC.PprofListenAddress = "localhost:6060"
+		defaultConfig.P2P.RecvRate = 5120000
+		defaultConfig.P2P.SendRate = 5120000
+		defaultConfig.Consensus.TimeoutCommit = 5 * time.Second
+		tmcfg.WriteConfigFile(configFilePath, defaultConfig)
 	}
 
-	// Read into the configuration whatever data the viper instance has for it.
-	// This may come from the configuration file above but also any of the other
-	// sources viper uses.
-	if err := rootViper.Unmarshal(conf); err != nil {
-		return nil, err
-	}
+	v.SetConfigFile(configFilePath)
+	return v.MergeInConfig()
+}
 
-	conf.SetRoot(rootDir)
+func MergeInAppConfigFile(v *viper.Viper, customAppTemplate string, customConfig interface{}) error {
+	homeDir := v.GetString(flags.FlagHome)
+	configPath := filepath.Join(homeDir, "config")
+	configFilePath := filepath.Join(configPath, "app.toml")
 
-	appCfgFilePath := filepath.Join(configPath, "app.toml")
-	if _, err := os.Stat(appCfgFilePath); os.IsNotExist(err) {
+	if _, err := os.Stat(configFilePath); os.IsNotExist(err) {
 		if customAppTemplate != "" {
 			config.SetConfigTemplate(customAppTemplate)
 
-			if err = rootViper.Unmarshal(&customConfig); err != nil {
-				return nil, fmt.Errorf("failed to parse %s: %w", appCfgFilePath, err)
+			if err = v.Unmarshal(&customConfig); err != nil {
+				return fmt.Errorf("failed to parse %s: %w", configFilePath, err)
 			}
 
-			config.WriteConfigFile(appCfgFilePath, customConfig)
+			config.WriteConfigFile(configFilePath, customConfig)
 		} else {
-			appConf, err := config.ParseConfig(rootViper)
+			appConf, err := config.ParseConfig(v)
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse %s: %w", appCfgFilePath, err)
+				return fmt.Errorf("failed to parse %s: %w", configFilePath, err)
 			}
 
-			config.WriteConfigFile(appCfgFilePath, appConf)
+			config.WriteConfigFile(configFilePath, appConf)
 		}
 	}
 
-	rootViper.SetConfigType("toml")
-	rootViper.SetConfigName("app")
-	rootViper.AddConfigPath(configPath)
-
-	if err := rootViper.MergeInConfig(); err != nil {
-		return nil, fmt.Errorf("failed to merge configuration: %w", err)
-	}
-
-	return conf, nil
+	v.SetConfigFile(configFilePath)
+	return v.MergeInConfig()
 }
 
 // add server commands

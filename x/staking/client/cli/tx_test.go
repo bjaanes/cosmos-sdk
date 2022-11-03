@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client/configinit"
+	"github.com/spf13/viper"
 	"io"
 	"testing"
 
@@ -85,7 +87,7 @@ func (s *CLITestSuite) SetupSuite() {
 		c := newMockTendermintRPC(abci.ResponseQuery{
 			Value: bz,
 		})
-		return s.baseCtx.WithClient(c)
+		return s.baseCtx.WithClient(c).WithViper(viper.New())
 	}
 	s.clientCtx = ctxGen().WithOutput(&outBuf)
 
@@ -304,8 +306,6 @@ func (s *CLITestSuite) TestNewCreateValidatorCmd() {
 }
 
 func (s *CLITestSuite) TestNewEditValidatorCmd() {
-	cmd := cli.NewEditValidatorCmd()
-
 	details := "bio"
 	identity := "test identity"
 	securityContact := "test contact"
@@ -402,6 +402,8 @@ func (s *CLITestSuite) TestNewEditValidatorCmd() {
 		tc := tc
 
 		s.Run(tc.name, func() {
+			cmd := cli.NewEditValidatorCmd()
+			s.Require().NoError(configinit.InitiateViper(s.clientCtx.Viper, cmd, "TESTD"))
 			out, err := clitestutil.ExecTestCLICmd(s.clientCtx, cmd, tc.args)
 			if tc.expectErr {
 				s.Require().Error(err)

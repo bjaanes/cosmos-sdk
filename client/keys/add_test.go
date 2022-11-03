@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client/configinit"
+	"github.com/spf13/viper"
 	"io"
 	"testing"
 
@@ -33,9 +35,6 @@ func Test_runAddCmdBasic(t *testing.T) {
 	kb, err := keyring.New(sdk.KeyringServiceName(), keyring.BackendTest, kbHome, mockIn, cdc)
 	require.NoError(t, err)
 
-	clientCtx := client.Context{}.WithKeyringDir(kbHome).WithInput(mockIn).WithCodec(cdc)
-	ctx := context.WithValue(context.Background(), client.ClientContextKey, &clientCtx)
-
 	t.Cleanup(func() {
 		_ = kb.Delete("keyname1")
 		_ = kb.Delete("keyname2")
@@ -48,11 +47,19 @@ func Test_runAddCmdBasic(t *testing.T) {
 		fmt.Sprintf("--%s=%s", flags.FlagKeyAlgorithm, hd.Secp256k1Type),
 		fmt.Sprintf("--%s=%s", flags.FlagKeyringBackend, keyring.BackendTest),
 	})
+
+	v := viper.New()
+	clientCtx := client.Context{}.WithKeyringDir(kbHome).WithInput(mockIn).WithCodec(cdc).WithViper(v)
+	require.NoError(t, configinit.InitiateViper(v, cmd, "TESTD"))
+	ctx := context.WithValue(context.Background(), client.ClientContextKey, &clientCtx)
+	cmd.SetContext(ctx)
+	require.NoError(t, client.SetCmdClientContextHandler(clientCtx, cmd))
+
 	mockIn.Reset("y\n")
-	require.NoError(t, cmd.ExecuteContext(ctx))
+	require.NoError(t, cmd.Execute())
 
 	mockIn.Reset("N\n")
-	require.Error(t, cmd.ExecuteContext(ctx))
+	require.Error(t, cmd.Execute())
 
 	cmd.SetArgs([]string{
 		"keyname2",
@@ -62,11 +69,11 @@ func Test_runAddCmdBasic(t *testing.T) {
 		fmt.Sprintf("--%s=%s", flags.FlagKeyringBackend, keyring.BackendTest),
 	})
 
-	require.NoError(t, cmd.ExecuteContext(ctx))
-	require.Error(t, cmd.ExecuteContext(ctx))
+	require.NoError(t, cmd.Execute())
+	require.Error(t, cmd.Execute())
 
 	mockIn.Reset("y\n")
-	require.NoError(t, cmd.ExecuteContext(ctx))
+	require.NoError(t, cmd.Execute())
 
 	cmd.SetArgs([]string{
 		"keyname4",
@@ -76,8 +83,8 @@ func Test_runAddCmdBasic(t *testing.T) {
 		fmt.Sprintf("--%s=%s", flags.FlagKeyringBackend, keyring.BackendTest),
 	})
 
-	require.NoError(t, cmd.ExecuteContext(ctx))
-	require.Error(t, cmd.ExecuteContext(ctx))
+	require.NoError(t, cmd.Execute())
+	require.Error(t, cmd.Execute())
 
 	cmd.SetArgs([]string{
 		"keyname5",
@@ -87,7 +94,7 @@ func Test_runAddCmdBasic(t *testing.T) {
 		fmt.Sprintf("--%s=%s", flags.FlagKeyAlgorithm, hd.Secp256k1Type),
 	})
 
-	require.NoError(t, cmd.ExecuteContext(ctx))
+	require.NoError(t, cmd.Execute())
 
 	// In recovery mode
 	cmd.SetArgs([]string{
@@ -97,11 +104,11 @@ func Test_runAddCmdBasic(t *testing.T) {
 
 	// use valid mnemonic and complete recovery key generation successfully
 	mockIn.Reset("decide praise business actor peasant farm drastic weather extend front hurt later song give verb rhythm worry fun pond reform school tumble august one\n")
-	require.NoError(t, cmd.ExecuteContext(ctx))
+	require.NoError(t, cmd.Execute())
 
 	// use invalid mnemonic and fail recovery key generation
 	mockIn.Reset("invalid mnemonic\n")
-	require.Error(t, cmd.ExecuteContext(ctx))
+	require.Error(t, cmd.Execute())
 
 	// In interactive mode
 	cmd.SetArgs([]string{
@@ -114,11 +121,11 @@ func Test_runAddCmdBasic(t *testing.T) {
 
 	// set password and complete interactive key generation successfully
 	mockIn.Reset("\n" + password + "\n" + password + "\n")
-	require.NoError(t, cmd.ExecuteContext(ctx))
+	require.NoError(t, cmd.Execute())
 
 	// passwords don't match and fail interactive key generation
 	mockIn.Reset("\n" + password + "\n" + "fail" + "\n")
-	require.Error(t, cmd.ExecuteContext(ctx))
+	require.Error(t, cmd.Execute())
 }
 
 func Test_runAddCmdDryRun(t *testing.T) {
@@ -196,11 +203,16 @@ func Test_runAddCmdDryRun(t *testing.T) {
 			kb, err := keyring.New(sdk.KeyringServiceName(), keyring.BackendTest, kbHome, mockIn, cdc)
 			require.NoError(t, err)
 
+			v := viper.New()
 			clientCtx := client.Context{}.
 				WithCodec(cdc).
 				WithKeyringDir(kbHome).
-				WithKeyring(kb)
+				WithKeyring(kb).
+				WithViper(v)
+			require.NoError(t, configinit.InitiateViper(v, cmd, "TESTD"))
 			ctx := context.WithValue(context.Background(), client.ClientContextKey, &clientCtx)
+			cmd.SetContext(ctx)
+			require.NoError(t, client.SetCmdClientContextHandler(clientCtx, cmd))
 
 			path := sdk.GetConfig().GetFullBIP44Path()
 			_, err = kb.NewAccount("subkey", testdata.TestMnemonic, "", path, hd.Secp256k1)
@@ -214,7 +226,7 @@ func Test_runAddCmdDryRun(t *testing.T) {
 			cmd.SetOut(b)
 
 			cmd.SetArgs(tt.args)
-			require.NoError(t, cmd.ExecuteContext(ctx))
+			require.NoError(t, cmd.Execute())
 
 			if tt.added {
 				_, err := kb.Key("testkey")
@@ -240,8 +252,12 @@ func TestAddRecoverFileBackend(t *testing.T) {
 	mockIn := testutil.ApplyMockIODiscardOutErr(cmd)
 	kbHome := t.TempDir()
 
-	clientCtx := client.Context{}.WithKeyringDir(kbHome).WithInput(mockIn).WithCodec(cdc)
+	v := viper.New()
+	clientCtx := client.Context{}.WithKeyringDir(kbHome).WithInput(mockIn).WithCodec(cdc).WithViper(v)
+	require.NoError(t, configinit.InitiateViper(v, cmd, "TESTD"))
 	ctx := context.WithValue(context.Background(), client.ClientContextKey, &clientCtx)
+	cmd.SetContext(ctx)
+	require.NoError(t, client.SetCmdClientContextHandler(clientCtx, cmd))
 
 	cmd.SetArgs([]string{
 		"keyname1",
@@ -261,7 +277,7 @@ func TestAddRecoverFileBackend(t *testing.T) {
 	require.NoError(t, err)
 
 	mockIn.Reset(fmt.Sprintf("%s\n%s\n%s\n", mnemonic, keyringPassword, keyringPassword))
-	require.NoError(t, cmd.ExecuteContext(ctx))
+	require.NoError(t, cmd.Execute())
 
 	kb, err := keyring.New(sdk.KeyringServiceName(), keyring.BackendFile, kbHome, mockIn, cdc)
 	require.NoError(t, err)

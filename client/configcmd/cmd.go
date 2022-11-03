@@ -1,15 +1,17 @@
-package config
+package configcmd
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/config"
+	"github.com/cosmos/cosmos-sdk/client/configinit"
 	"path/filepath"
 
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 )
 
@@ -26,10 +28,13 @@ func Cmd() *cobra.Command {
 }
 
 func runConfigCmd(cmd *cobra.Command, args []string) error {
-	clientCtx := client.GetClientContextFromCmd(cmd)
+	clientCtx, err := client.GetClientContextFromCmd(cmd)
+	if err != nil {
+		return err
+	}
 	configPath := filepath.Join(clientCtx.HomeDir, "config")
 
-	conf, err := getClientConfig(configPath, clientCtx.Viper)
+	conf, err := config.GetClientConfig(clientCtx.Viper)
 	if err != nil {
 		return fmt.Errorf("couldn't get client config: %v", err)
 	}
@@ -83,12 +88,12 @@ func runConfigCmd(cmd *cobra.Command, args []string) error {
 		}
 
 		confFile := filepath.Join(configPath, "client.toml")
-		if err := writeConfigToFile(confFile, conf); err != nil {
+		if err := configinit.WriteConfigToFile(confFile, config.DefaultConfigTemplate, conf); err != nil {
 			return fmt.Errorf("could not write client config to the file: %v", err)
 		}
 
 	default:
-		panic("cound not execute config command")
+		panic("could not execute config command")
 	}
 
 	return nil

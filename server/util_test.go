@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client/configinit"
+	"github.com/spf13/viper"
 	"os"
 	"path"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -25,17 +26,21 @@ import (
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 )
 
+const envPrefix = "TESTD"
+
 var cancelledInPreRun = errors.New("Cancelled in prerun")
 
 // Used in each test to run the function under test via Cobra
 // but to always halt the command
-func preRunETestImpl(cmd *cobra.Command, args []string) error {
-	err := server.InterceptConfigsPreRunHandler(cmd, "", nil, tmcfg.DefaultConfig())
-	if err != nil {
-		return err
-	}
+func preRunETestImpl(v *viper.Viper) func(*cobra.Command, []string) error {
+	return func(cmd *cobra.Command, args []string) error {
+		err := server.InterceptConfigsPreRunHandler(v, cmd, "", nil, tmcfg.DefaultConfig())
+		if err != nil {
+			return err
+		}
 
-	return cancelledInPreRun
+		return cancelledInPreRun
+	}
 }
 
 func TestInterceptConfigsPreRunHandlerCreatesConfigFilesWhenMissing(t *testing.T) {
@@ -45,7 +50,9 @@ func TestInterceptConfigsPreRunHandlerCreatesConfigFilesWhenMissing(t *testing.T
 		t.Fatalf("Could not set home flag [%T] %v", err, err)
 	}
 
-	cmd.PreRunE = preRunETestImpl
+	v := viper.New()
+	require.NoError(t, configinit.InitiateViper(v, cmd, envPrefix))
+	cmd.PreRunE = preRunETestImpl(v)
 
 	serverCtx := &server.Context{}
 	ctx := context.WithValue(context.Background(), server.ServerContextKey, serverCtx)
@@ -121,7 +128,9 @@ func TestInterceptConfigsPreRunHandlerReadsConfigToml(t *testing.T) {
 		t.Fatalf("Could not set home flag [%T] %v", err, err)
 	}
 
-	cmd.PreRunE = preRunETestImpl
+	v := viper.New()
+	require.NoError(t, configinit.InitiateViper(v, cmd, envPrefix))
+	cmd.PreRunE = preRunETestImpl(v)
 
 	serverCtx := &server.Context{}
 	ctx := context.WithValue(context.Background(), server.ServerContextKey, serverCtx)
@@ -158,7 +167,9 @@ func TestInterceptConfigsPreRunHandlerReadsAppToml(t *testing.T) {
 	}
 	cmd := server.StartCmd(nil, tempDir)
 
-	cmd.PreRunE = preRunETestImpl
+	v := viper.New()
+	require.NoError(t, configinit.InitiateViper(v, cmd, envPrefix))
+	cmd.PreRunE = preRunETestImpl(v)
 
 	serverCtx := &server.Context{}
 	ctx := context.WithValue(context.Background(), server.ServerContextKey, serverCtx)
@@ -186,7 +197,9 @@ func TestInterceptConfigsPreRunHandlerReadsFlags(t *testing.T) {
 		t.Fatalf("Could not set address flag [%T] %v", err, err)
 	}
 
-	cmd.PreRunE = preRunETestImpl
+	v := viper.New()
+	require.NoError(t, configinit.InitiateViper(v, cmd, envPrefix))
+	cmd.PreRunE = preRunETestImpl(v)
 
 	serverCtx := &server.Context{}
 	ctx := context.WithValue(context.Background(), server.ServerContextKey, serverCtx)
@@ -208,20 +221,15 @@ func TestInterceptConfigsPreRunHandlerReadsEnvVars(t *testing.T) {
 		t.Fatalf("Could not set home flag [%T] %v", err, err)
 	}
 
-	executableName, err := os.Executable()
-	if err != nil {
-		t.Fatalf("Could not get executable name: %v", err)
-	}
-	basename := path.Base(executableName)
-	basename = strings.ReplaceAll(basename, ".", "_")
-	// This is added by tendermint
-	envVarName := fmt.Sprintf("%s_RPC_LADDR", strings.ToUpper(basename))
+	envVarName := fmt.Sprintf("%s_RPC_LADDR", envPrefix)
 	require.NoError(t, os.Setenv(envVarName, testAddr))
 	t.Cleanup(func() {
 		require.NoError(t, os.Unsetenv(envVarName))
 	})
 
-	cmd.PreRunE = preRunETestImpl
+	v := viper.New()
+	require.NoError(t, configinit.InitiateViper(v, cmd, envPrefix))
+	cmd.PreRunE = preRunETestImpl(v)
 
 	serverCtx := &server.Context{}
 	ctx := context.WithValue(context.Background(), server.ServerContextKey, serverCtx)
@@ -258,22 +266,15 @@ func newPrecedenceCommon(t *testing.T) precedenceCommon {
 	retval := precedenceCommon{}
 
 	// Determine the env. var. name based off the executable name
-	executableName, err := os.Executable()
-	if err != nil {
-		t.Fatalf("Could not get executable name: %v", err)
-	}
-	basename := path.Base(executableName)
-	basename = strings.ReplaceAll(basename, ".", "_")
-	basename = strings.ReplaceAll(basename, "-", "_")
 	// Store the name of the env. var.
-	retval.envVarName = fmt.Sprintf("%s_RPC_LADDR", strings.ToUpper(basename))
+	retval.envVarName = fmt.Sprintf("%s_RPC_LADDR", envPrefix)
 
 	// Store the flag name. This flag is added by tendermint
 	retval.flagName = "rpc.laddr"
 
 	// Create a tempdir and create './config' under that
 	tempDir := t.TempDir()
-	err = os.Mkdir(path.Join(tempDir, "config"), os.ModePerm)
+	err := os.Mkdir(path.Join(tempDir, "config"), os.ModePerm)
 	if err != nil {
 		t.Fatalf("creating config dir failed: %v", err)
 	}
@@ -290,7 +291,9 @@ func newPrecedenceCommon(t *testing.T) precedenceCommon {
 
 	// Set up the command object that is used in this test
 	retval.cmd = server.StartCmd(nil, tempDir)
-	retval.cmd.PreRunE = preRunETestImpl
+	v := viper.New()
+	require.NoError(t, configinit.InitiateViper(v, retval.cmd, envPrefix))
+	retval.cmd.PreRunE = preRunETestImpl(v)
 
 	return retval
 }
@@ -401,7 +404,9 @@ func TestInterceptConfigsWithBadPermissions(t *testing.T) {
 		t.Fatalf("Could not set home flag [%T] %v", err, err)
 	}
 
-	cmd.PreRunE = preRunETestImpl
+	v := viper.New()
+	require.NoError(t, configinit.InitiateViper(v, cmd, envPrefix))
+	cmd.PreRunE = preRunETestImpl(v)
 
 	serverCtx := &server.Context{}
 	ctx := context.WithValue(context.Background(), server.ServerContextKey, serverCtx)
@@ -417,7 +422,7 @@ func TestEmptyMinGasPrices(t *testing.T) {
 	encCfg := testutil.MakeTestEncodingConfig()
 
 	// Run InitCmd to create necessary config files.
-	clientCtx := client.Context{}.WithHomeDir(tempDir).WithCodec(encCfg.Codec)
+	clientCtx := client.Context{}.WithHomeDir(tempDir).WithCodec(encCfg.Codec).WithViper(viper.New())
 	serverCtx := server.NewDefaultContext()
 	ctx := context.WithValue(context.Background(), server.ServerContextKey, serverCtx)
 	ctx = context.WithValue(ctx, client.ClientContextKey, &clientCtx)
@@ -435,7 +440,7 @@ func TestEmptyMinGasPrices(t *testing.T) {
 	// Run StartCmd.
 	cmd = server.StartCmd(nil, tempDir)
 	cmd.PreRunE = func(cmd *cobra.Command, _ []string) error {
-		return server.InterceptConfigsPreRunHandler(cmd, "", nil, tmcfg.DefaultConfig())
+		return server.InterceptConfigsPreRunHandler(viper.New(), cmd, "", nil, tmcfg.DefaultConfig())
 	}
 	err = cmd.ExecuteContext(ctx)
 	require.Errorf(t, err, sdkerrors.ErrAppConfig.Error())

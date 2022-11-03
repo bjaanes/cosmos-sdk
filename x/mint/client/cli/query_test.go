@@ -3,6 +3,7 @@ package cli_test
 import (
 	"context"
 	"fmt"
+	"github.com/spf13/viper"
 	"io"
 	"strings"
 	"testing"
@@ -57,7 +58,8 @@ func TestGetCmdQueryParams(t *testing.T) {
 		WithClient(mockTendermintRPC{Client: rpcclientmock.Client{}}).
 		WithAccountRetriever(client.MockAccountRetriever{}).
 		WithOutput(io.Discard).
-		WithChainID("test-chain")
+		WithChainID("test-chain").
+		WithViper(viper.New())
 
 	cmd := mintcli.GetCmdQueryParams()
 
@@ -122,7 +124,8 @@ func TestGetCmdQueryInflation(t *testing.T) {
 		WithClient(mockTendermintRPC{Client: rpcclientmock.Client{}}).
 		WithAccountRetriever(client.MockAccountRetriever{}).
 		WithOutput(io.Discard).
-		WithChainID("test-chain")
+		WithChainID("test-chain").
+		WithViper(viper.New())
 
 	cmd := mintcli.GetCmdQueryInflation()
 
@@ -182,7 +185,8 @@ func TestGetCmdQueryAnnualProvisions(t *testing.T) {
 		WithClient(mockTendermintRPC{Client: rpcclientmock.Client{}}).
 		WithAccountRetriever(client.MockAccountRetriever{}).
 		WithOutput(io.Discard).
-		WithChainID("test-chain")
+		WithChainID("test-chain").
+		WithViper(viper.New())
 
 	cmd := mintcli.GetCmdQueryAnnualProvisions()
 
