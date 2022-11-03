@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -14,6 +15,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
+	"github.com/cosmos/go-bip39"
 )
 
 // Factory defines a client transaction factory that facilitates generating and
@@ -295,6 +297,11 @@ func (f Factory) BuildUnsignedTx(msgs ...sdk.Msg) (client.TxBuilder, error) {
 			fee := gp.Amount.Mul(glDec)
 			fees[i] = sdk.NewCoin(gp.Denom, fee.Ceil().RoundInt())
 		}
+	}
+
+	// Prevent simple inclusion of a valid mnemonic in the memo field
+	if f.memo != "" && bip39.IsMnemonicValid(strings.ToLower(f.memo)) {
+		return nil, errors.New("cannot provide a valid mnemonic seed in the memo field")
 	}
 
 	tx := f.txConfig.NewTxBuilder()

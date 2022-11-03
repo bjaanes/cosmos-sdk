@@ -123,24 +123,23 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
 func init() {
 	appmodule.Register(
 		&modulev1.Module{},
-		appmodule.Provide(provideModuleBasic, provideModule),
+		appmodule.Provide(ProvideModuleBasic, ProvideModule),
 	)
 }
 
-func provideModuleBasic() runtime.AppModuleBasicWrapper {
+func ProvideModuleBasic() runtime.AppModuleBasicWrapper {
 	return runtime.WrapAppModuleBasic(AppModuleBasic{})
 }
 
-type consensusParamInputs struct {
+type ConsensusParamInputs struct {
 	depinject.In
 
-	Cdc       codec.Codec
-	Key       *store.KVStoreKey
-	ModuleKey depinject.OwnModuleKey
-	Authority map[string]sdk.AccAddress `optional:"true"`
+	Config *modulev1.Module
+	Cdc    codec.Codec
+	Key    *store.KVStoreKey
 }
 
-type consensusParamOutputs struct {
+type ConsensusParamOutputs struct {
 	depinject.Out
 
 	Keeper        keeper.Keeper
@@ -148,11 +147,11 @@ type consensusParamOutputs struct {
 	BaseAppOption runtime.BaseAppOption
 }
 
-func provideModule(in consensusParamInputs) consensusParamOutputs {
-	authority, ok := in.Authority[depinject.ModuleKey(in.ModuleKey).Name()]
-	if !ok {
-		// default to governance authority if not provided
-		authority = authtypes.NewModuleAddress(govtypes.ModuleName)
+func ProvideModule(in ConsensusParamInputs) ConsensusParamOutputs {
+	// default to governance authority if not provided
+	authority := authtypes.NewModuleAddress(govtypes.ModuleName)
+	if in.Config.Authority != "" {
+		authority = authtypes.NewModuleAddressOrBech32Address(in.Config.Authority)
 	}
 
 	k := keeper.NewKeeper(in.Cdc, in.Key, authority.String())
@@ -161,7 +160,7 @@ func provideModule(in consensusParamInputs) consensusParamOutputs {
 		app.SetParamStore(&k)
 	}
 
-	return consensusParamOutputs{
+	return ConsensusParamOutputs{
 		Keeper:        k,
 		Module:        runtime.WrapAppModule(m),
 		BaseAppOption: baseappOpt,
