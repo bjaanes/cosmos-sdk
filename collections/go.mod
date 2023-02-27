@@ -5,7 +5,7 @@ go 1.19
 require (
 	cosmossdk.io/core v0.3.4
 	github.com/hashicorp/go-multierror v1.1.1 // TODO: remove with go 1.20 release
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	github.com/tendermint/tm-db v0.6.7
 )
 
